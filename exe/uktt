@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require "uktt/cli"
+Uktt::CLI.start
