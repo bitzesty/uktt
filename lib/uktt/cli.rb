@@ -10,10 +10,9 @@ module Uktt
     class_option :prod,    aliases: ['-p', '--production'], type: :string, desc: "Use production API host, otherwise `#{API_HOST_LOCAL}`", banner: true
 
     desc 'section', 'Retrieves a section'
-    method_option :json, aliases: ['-j', '--json']
     def section(section_id)
-      json = options[:json] || false
-      puts Uktt::Section.new(section_id, json).retrieve
+      host, version, json = handle_class_options(options)
+      puts Uktt::Section.new(section_id, json, host, version).retrieve
     end
 
     desc 'sections', 'Retrieves all sections'
@@ -25,7 +24,7 @@ module Uktt
     desc 'chapter', 'Retrieves a chapter'
     def chapter(chapter_id)
       host, version, json = handle_class_options(options)
-      puts Uktt::Chapter.new(chapter_id, json).retrieve
+      puts Uktt::Chapter.new(chapter_id, json, host, version).retrieve
     end
 
     desc 'chapters', 'Retrieves all chapters'
@@ -37,13 +36,13 @@ module Uktt
     desc 'heading', 'Retrieves a heading'
     def heading(heading_id)
       host, version, json = handle_class_options(options)
-      puts Uktt::Heading.new(heading_id, json).retrieve
+      puts Uktt::Heading.new(heading_id, json, host, version).retrieve
     end
 
     desc 'commodity', 'Retrieves a commodity'
     def commodity(commodity_id)
       host, version, json = handle_class_options(options)
-      puts Uktt::Commodity.new(commodity_id, json).retrieve
+      puts Uktt::Commodity.new(commodity_id, json, host, version).retrieve
     end
 
     desc 'info', 'Prints help for Uktt'
