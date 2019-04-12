@@ -6,21 +6,21 @@ Gem::Specification.new do |spec|
   spec.name          = "uktt"
   spec.version       = Uktt::VERSION
   spec.authors       = ["Christopher Unger"]
-  spec.email         = ["mcu@mac.com"]
+  spec.email         = ["christopher.unger@bitzesty.com"]
 
-  spec.summary       = %q{Write a short summary, because RubyGems requires one.}
-  spec.description   = %q{Write a longer description or delete this line.}
-  spec.homepage      = "http://christopherunger.com"
+  spec.summary       = %q{A gem to work with the UK Trade Tariff API.}
+  # spec.description   = %q{A gem to work with the UK Trade Tariff API.}
+  spec.homepage      = "https://gitlab.bitzesty.com/christopher.unger/uktt"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
   if spec.respond_to?(:metadata)
-    spec.metadata["allowed_push_host"] = "http://christopherunger.com"
+    spec.metadata["allowed_push_host"] = "https://gitlab.bitzesty.com"
 
     spec.metadata["homepage_uri"] = spec.homepage
-    spec.metadata["source_code_uri"] = "http://christopherunger.com"
-    spec.metadata["changelog_uri"] = "http://christopherunger.com"
+    spec.metadata["source_code_uri"] = "https://gitlab.bitzesty.com/christopher.unger/uktt"
+    spec.metadata["changelog_uri"] = "https://gitlab.bitzesty.com/christopher.unger/uktt/blob/master/CHANGELOG.md"
   else
     raise "RubyGems 2.0 or newer is required to protect against " \
       "public gem pushes."
