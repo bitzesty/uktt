@@ -9,11 +9,13 @@ RSpec.describe 'UK Trade Tariff API client' do
   section = Uktt::Section.new(section_id)
   section_json = Uktt::Section.new(section_id, true)
   section_production = Uktt::Section.new(section_id, false, production_host, 'v1')
+  section_test = Uktt::Section.new(section_id, false, 'foo', 'v1')
 
   chapter_id = '01'
   chapter = Uktt::Chapter.new(chapter_id)
   chapter_json = Uktt::Chapter.new(chapter_id, true)
   chapter_production = Uktt::Chapter.new(chapter_id, false, production_host, 'v1')
+ chapter_test = Uktt::Chapter.new(section_id, false, 'foo', 'v1')
 
   heading_id = '0101'
   heading = Uktt::Heading.new(heading_id)
@@ -27,6 +29,49 @@ RSpec.describe 'UK Trade Tariff API client' do
 
   it "has a version number" do
     expect(Uktt::VERSION).not_to be(nil)
+  end
+
+  it 'sets the @host instance variable on a section' do
+    h = 'https://foo.bar:9999'
+    section_test.host = h
+    expect(section_test.host).to eq(h)
+  end
+
+  it 'sets the @version instance variable on a section' do
+    section_test.version = 'v2'
+    expect(section_test.version).to eq('v2')
+  end
+
+  it 'sets the @section_id instance variable on a section' do
+    section_test.section_id = '2'
+    expect(section_test.section_id).to eq('2')
+  end
+
+  it 'sets the @return_json instance variable on a section' do
+    section_test.return_json = true
+    expect(section_test.return_json).to eq(true)
+  end
+
+  ####
+  it 'sets the @host instance variable on a chapter' do
+    h = 'https://foo.bar:9999'
+    chapter_test.host = h
+    expect(chapter_test.host).to eq(h)
+  end
+
+  it 'sets the @version instance variable on a chapter' do
+    chapter_test.version = 'v2'
+    expect(chapter_test.version).to eq('v2')
+  end
+
+  it 'sets the @section_id instance variable on a chapter' do
+    chapter_test.chapter_id = '02'
+    expect(chapter_test.chapter_id).to eq('02')
+  end
+
+  it 'sets the @return_json instance variable on a chapter' do
+    chapter_test.return_json = true
+    expect(chapter_test.return_json).to eq(true)
   end
 
   it "retrieves one section as OpenStruct" do

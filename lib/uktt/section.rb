@@ -1,5 +1,6 @@
 module Uktt
   class Section
+    attr_accessor :host, :version, :return_json, :section_id
 
     def initialize(section_id=nil, json=false, host=nil, version=nil)
       @host = host

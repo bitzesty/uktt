@@ -1,5 +1,6 @@
 module Uktt
   class Heading
+    attr_accessor :host, :version, :return_json, :heading_id
 
     def initialize(heading_id, json=false, host=nil, version=nil)
       @host = host

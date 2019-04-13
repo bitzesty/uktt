@@ -2,13 +2,13 @@ require 'faraday'
 require 'json'
 
 module Uktt
-  API_HOST_PROD = 'https://www.trade-tariff.service.gov.uk'.freeze
-  API_HOST_LOCAL = 'http://localhost:3002'.freeze
-  API_VERSION = 'v1'.freeze
-  SECTION = '/sections'.freeze
-  CHAPTER = '/chapters'.freeze
-  HEADING = '/headings'.freeze
-  COMMODITY = '/commodities'.freeze
+  API_HOST_PROD =   'https://www.trade-tariff.service.gov.uk'.freeze
+  API_HOST_LOCAL =  'http://localhost:3002'.freeze
+  API_VERSION =     'v1'.freeze
+  SECTION =         '/sections'.freeze
+  CHAPTER =         '/chapters'.freeze
+  HEADING =         '/headings'.freeze
+  COMMODITY =       '/commodities'.freeze
 
   class Http
     def initialize(host=nil, version=nil)
@@ -24,6 +24,7 @@ module Uktt
       response = @conn.get do |request|
         request.url([@version, resource].join('/'))
       end
+
       json = response.body
       return json if return_json
 
@@ -39,6 +40,7 @@ module Uktt
       response = @conn.get do |request|
         request.url([@version, resource].join('/'))
       end
+
       json = response.body
       return json if return_json
 
@@ -48,6 +50,10 @@ module Uktt
       ).map do |hash|
         OpenStruct.new(hash)
       end
+    end
+
+    def host=(host)
+      @host = host
     end
   end
 end
