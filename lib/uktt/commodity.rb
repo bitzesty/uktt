@@ -9,7 +9,8 @@ module Uktt
     end
 
     def retrieve
-      Uktt::Http.new(@host, @version).retrieve("#{COMMODITY}/#{@commodity_id}.json", @return_json)
+      resource = "#{COMMODITY}/#{@commodity_id}.json"
+      Uktt::Http.new(@host, @version).retrieve(resource, @return_json)
     end
   end
 end

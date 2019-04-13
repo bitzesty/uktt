@@ -9,11 +9,13 @@ module Uktt
     end
 
     def retrieve
-      Uktt::Http.new(@host, @version).retrieve("#{CHAPTER}/#{@chapter_id}.json", @return_json)
+      resource = "#{CHAPTER}/#{@chapter_id}.json"
+      Uktt::Http.new(@host, @version).retrieve(resource, @return_json)
     end
 
     def retrieve_all
-      Uktt::Http.new(@host, @version).retrieve_all("#{CHAPTER}.json", @return_json)
+      resource = "#{CHAPTER}.json"
+      Uktt::Http.new(@host, @version).retrieve_all(resource, @return_json)
     end
   end
 end

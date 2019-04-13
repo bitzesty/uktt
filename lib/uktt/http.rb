@@ -14,15 +14,19 @@ module Uktt
     def initialize(host=nil, version=nil)
       @host = host || API_HOST_LOCAL
       @version = version || API_VERSION
-    end
-
-    def host_with(resource)
-      [@host, @version, resource].join('/')
+      @conn = Faraday.new(:url => @host) do |faraday|
+        # faraday.response :logger                  # log requests and responses to $stdout
+        faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
+      end
     end
 
     def retrieve(resource, return_json=false)
-      json = Faraday.get(host_with(resource)).body
+      response = @conn.get do |request|
+        request.url([@version, resource].join('/'))
+      end
+      json = response.body
       return json if return_json
+
       OpenStruct.new(
         JSON.parse(
           json,
@@ -32,8 +36,12 @@ module Uktt
     end
 
     def retrieve_all(resource, return_json=false)
-      json = Faraday.get(host_with(resource)).body
+      response = @conn.get do |request|
+        request.url([@version, resource].join('/'))
+      end
+      json = response.body
       return json if return_json
+
       JSON.parse(
         json,
         symbolize_names: true

@@ -1,6 +1,6 @@
 require 'uktt'
 
-RSpec.describe Uktt do
+RSpec.describe 'UK Trade Tariff API client' do
   host = Uktt::API_HOST_LOCAL
   production_host = Uktt::API_HOST_PROD
   version = Uktt::API_VERSION
@@ -27,18 +27,6 @@ RSpec.describe Uktt do
 
   it "has a version number" do
     expect(Uktt::VERSION).not_to be(nil)
-  end
-
-  it 'produces an endpoint URI' do
-    expect(Uktt::Http.new.host_with('chapters/01.json')).to eq(host + '/v1/chapters/01.json')
-  end
-
-  it 'produces an endpoint URI with a host specified' do
-    expect(Uktt::Http.new(production_host).host_with('chapters/01.json')).to eq(production_host + '/v1/chapters/01.json')
-  end
-
-  it 'produces an endpoint URI with a host and version specified' do
-    expect(Uktt::Http.new(production_host, 'v2').host_with('chapters/01.json')).to eq(production_host + '/v2/chapters/01.json')
   end
 
   it "retrieves one section as OpenStruct" do
