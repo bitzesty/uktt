@@ -33,6 +33,20 @@ RSpec.describe 'UK Trade Tariff API client' do
     expect(Uktt::VERSION).not_to be(nil)
     expect(Uktt::VERSION).to match(/^\d+\.\d+\.\d+$/)
   end
+  
+  it "produces a PDF and saves it in '#{Dir.pwd}'" do
+    filepath = Uktt::Pdf.new('test').make_chapter
+    expect(filepath).to eq("#{Dir.pwd}/test.pdf")
+    expect(File.read(filepath)[0,4]).to eq('%PDF')
+    File.delete(filepath) if File.exist?(filepath)
+  end
+
+  it "produces a PDF and saves it at a user-specified filepath" do
+    user_filepath = Uktt::Pdf.new('test', false, nil, nil, false, '/tmp/test.pdf').make_chapter
+    expect(user_filepath).to eq("/tmp/test.pdf")
+    expect(File.read(user_filepath)[0,4]).to eq('%PDF')
+    File.delete(user_filepath) if File.exist?(user_filepath)
+  end
 
   it 'sets the @host instance variable on a section' do
     section_test.host = host

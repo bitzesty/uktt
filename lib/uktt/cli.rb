@@ -46,7 +46,15 @@ module Uktt
       puts Uktt::Commodity.new(commodity_id, json, host, version, debug).retrieve
     end
 
-    desc 'info', 'Prints help for Uktt'
+    desc 'pdf', 'Makes a PDF of a chapter'
+    method_option :filepath, aliases: ['-f', '--filepath'], type: :string, desc: 'Save PDF to path and name, otherwise saves in `pwd`', banner: '`pwd`'
+    def pdf(chapter_id)
+      host, version, json, debug, filepath = handle_class_options(options)
+      puts "Making a PDF for Chapter #{chapter_id}"
+      puts "Finished #{Uktt::Pdf.new(chapter_id, json, host, version, debug, filepath).make}"
+    end
+
+    desc 'info', 'Prints help for `uktt`'
     method_option :version, aliases: ['-v', '--version']
     def info
       if options[:version]
@@ -65,7 +73,8 @@ module Uktt
           options[:host] || (options[:prod] ? API_HOST_PROD : API_HOST_LOCAL),
           options[:api_version] || 'v1',
           options[:json] || false,
-          options[:debug] || false
+          options[:debug] || false,
+          options[:filepath] || nil
         ]
       end
     end
