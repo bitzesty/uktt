@@ -11,11 +11,11 @@ module Uktt
   COMMODITY =       '/commodities'.freeze
 
   class Http
-    def initialize(host=nil, version=nil)
+    def initialize(host=nil, version=nil, debug=false)
       @host = host || API_HOST_LOCAL
       @version = version || API_VERSION
       @conn = Faraday.new(:url => @host) do |faraday|
-        # faraday.response :logger                  # log requests and responses to $stdout
+        faraday.response(:logger) if debug        # log requests and responses to $stdout
         faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
       end
     end
@@ -50,10 +50,6 @@ module Uktt
       ).map do |hash|
         OpenStruct.new(hash)
       end
-    end
-
-    def host=(host)
-      @host = host
     end
   end
 end

@@ -8,33 +8,35 @@ RSpec.describe 'UK Trade Tariff API client' do
   section_id = '1'
   section = Uktt::Section.new(section_id)
   section_json = Uktt::Section.new(section_id, true)
-  section_production = Uktt::Section.new(section_id, false, production_host, 'v1')
+  # section_production = Uktt::Section.new(section_id, false, production_host, 'v1')
   section_test = Uktt::Section.new(section_id, false, 'foo', 'v1')
 
   chapter_id = '01'
   chapter = Uktt::Chapter.new(chapter_id)
   chapter_json = Uktt::Chapter.new(chapter_id, true)
-  chapter_production = Uktt::Chapter.new(chapter_id, false, production_host, 'v1')
- chapter_test = Uktt::Chapter.new(section_id, false, 'foo', 'v1')
+  # chapter_production = Uktt::Chapter.new(chapter_id, false, production_host, 'v1')
+  chapter_test = Uktt::Chapter.new(chapter_id, false, 'foo', 'v1')
 
   heading_id = '0101'
   heading = Uktt::Heading.new(heading_id)
   heading_json = Uktt::Heading.new(heading_id, true)
-  heading_production = Uktt::Heading.new(heading_id, false, production_host, 'v1')
+  # heading_production = Uktt::Heading.new(heading_id, false, production_host, 'v1')
+  heading_test = Uktt::Heading.new(heading_id, false, 'foo', 'v1')
 
   commodity_id = '0101210000'
   commodity = Uktt::Commodity.new(commodity_id)
   commodity_json = Uktt::Commodity.new(commodity_id, true)
-  commodity_production = Uktt::Commodity.new(commodity_id, false, production_host, 'v1')
+  # commodity_production = Uktt::Commodity.new(commodity_id, false, production_host, 'v1')
+  commodity_test = Uktt::Commodity.new(commodity_id, false, 'foo', 'v1')
 
-  it "has a version number" do
+  it "has a version number and is in the correct format" do
     expect(Uktt::VERSION).not_to be(nil)
+    expect(Uktt::VERSION).to match(/^\d+\.\d+\.\d+$/)
   end
 
   it 'sets the @host instance variable on a section' do
-    h = 'https://foo.bar:9999'
-    section_test.host = h
-    expect(section_test.host).to eq(h)
+    section_test.host = host
+    expect(section_test.host).to eq(host)
   end
 
   it 'sets the @version instance variable on a section' do
@@ -52,11 +54,14 @@ RSpec.describe 'UK Trade Tariff API client' do
     expect(section_test.return_json).to eq(true)
   end
 
-  ####
+  it 'sets the @debug instance variable on a section' do
+    section_test.debug = true
+    expect(section_test.debug).to eq(true)
+  end
+
   it 'sets the @host instance variable on a chapter' do
-    h = 'https://foo.bar:9999'
-    chapter_test.host = h
-    expect(chapter_test.host).to eq(h)
+    chapter_test.host = host
+    expect(chapter_test.host).to eq(host)
   end
 
   it 'sets the @version instance variable on a chapter' do
@@ -64,7 +69,7 @@ RSpec.describe 'UK Trade Tariff API client' do
     expect(chapter_test.version).to eq('v2')
   end
 
-  it 'sets the @section_id instance variable on a chapter' do
+  it 'sets the @chapter_id instance variable on a chapter' do
     chapter_test.chapter_id = '02'
     expect(chapter_test.chapter_id).to eq('02')
   end
@@ -72,6 +77,61 @@ RSpec.describe 'UK Trade Tariff API client' do
   it 'sets the @return_json instance variable on a chapter' do
     chapter_test.return_json = true
     expect(chapter_test.return_json).to eq(true)
+  end
+
+  it 'sets the @debug instance variable on a chapter' do
+    chapter_test.debug = true
+    expect(chapter_test.debug).to eq(true)
+  end
+
+  it 'sets the @host instance variable on a heading' do
+    heading_test.host = host
+    expect(heading_test.host).to eq(host)
+  end
+
+  it 'sets the @version instance variable on a heading' do
+    heading_test.version = 'v2'
+    expect(heading_test.version).to eq('v2')
+  end
+
+  it 'sets the @heading_id instance variable on a heading' do
+    heading_test.heading_id = '0201'
+    expect(heading_test.heading_id).to eq('0201')
+  end
+
+  it 'sets the @return_json instance variable on a heading' do
+    heading_test.return_json = true
+    expect(heading_test.return_json).to eq(true)
+  end
+
+  it 'sets the @debug instance variable on a heading' do
+    heading_test.debug = true
+    expect(heading_test.debug).to eq(true)
+  end
+
+  it 'sets the @host instance variable on a commodity' do
+    commodity_test.host = host
+    expect(commodity_test.host).to eq(host)
+  end
+
+  it 'sets the @version instance variable on a commodity' do
+    commodity_test.version = 'v2'
+    expect(commodity_test.version).to eq('v2')
+  end
+
+  it 'sets the @commodity_id instance variable on a commodity' do
+    commodity_test.commodity_id = asses = '0101300000'
+    expect(commodity_test.commodity_id).to eq(asses)
+  end
+
+  it 'sets the @return_json instance variable on a commodity' do
+    commodity_test.return_json = true
+    expect(commodity_test.return_json).to eq(true)
+  end
+
+  it 'sets the @debug instance variable on a commodity' do
+    commodity_test.debug = true
+    expect(commodity_test.debug).to eq(true)
   end
 
   it "retrieves one section as OpenStruct" do
