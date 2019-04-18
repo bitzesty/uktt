@@ -4,11 +4,11 @@ require 'uktt'
 module Uktt
   class CLI < Thor
 
-    class_option :version, aliases: ['-a', '--api-version'], type: :string, desc: 'Request a specific API version, otherwise `v1`', banner: 'v1'
-    class_option :host,    aliases: ['-h', '--host'], type: :string, desc: "Use specified API host, otherwise `#{API_HOST_LOCAL}`", banner: 'http://localhost:3002'
-    class_option :json,    aliases: ['-j', '--json'], type: :boolean, desc: 'Request JSON response, otherwise OpenStruct', banner: true
-    class_option :prod,    aliases: ['-p', '--production'], type: :string, desc: "Use production API host, otherwise `#{API_HOST_LOCAL}`", banner: true
-    class_option :debug,   aliases: ['-d', '--debug'], type: :boolean, desc: "Show request and response headers, otherwise they are not shown", banner: true
+    class_option :api_version,  aliases: ['-a', '--api-version'], type: :string, desc: 'Request a specific API version, otherwise `v1`', banner: 'v1'
+    class_option :host,         aliases: ['-h', '--host'], type: :string, desc: "Use specified API host, otherwise `#{API_HOST_LOCAL}`", banner: 'http://localhost:3002'
+    class_option :json,         aliases: ['-j', '--json'], type: :boolean, desc: 'Request JSON response, otherwise OpenStruct', banner: true
+    class_option :prod,         aliases: ['-p', '--production'], type: :string, desc: "Use production API host, otherwise `#{API_HOST_LOCAL}`", banner: true
+    class_option :debug,        aliases: ['-d', '--debug'], type: :boolean, desc: "Show request and response headers, otherwise they are not shown", banner: true
 
     desc 'section', 'Retrieves a section'
     def section(section_id)
