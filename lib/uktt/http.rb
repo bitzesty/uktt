@@ -5,10 +5,10 @@ module Uktt
   API_HOST_PROD =   'https://www.trade-tariff.service.gov.uk'.freeze
   API_HOST_LOCAL =  'http://localhost:3002'.freeze
   API_VERSION =     'v1'.freeze
-  SECTION =         '/sections'.freeze
-  CHAPTER =         '/chapters'.freeze
-  HEADING =         '/headings'.freeze
-  COMMODITY =       '/commodities'.freeze
+  SECTION =         'sections'.freeze
+  CHAPTER =         'chapters'.freeze
+  HEADING =         'headings'.freeze
+  COMMODITY =       'commodities'.freeze
 
   class Http
     def initialize(host=nil, version=nil, debug=false)
