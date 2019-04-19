@@ -17,7 +17,7 @@ module Uktt
 
     def retrieve_all
       resource = "#{SECTION}.json"
-      Uktt::Http.new(@host, @version, @debug).retrieve_all(resource, @return_json)
+      Uktt::Http.new(@host, @version, @debug).retrieve(resource, @return_json)
     end
   end
 end

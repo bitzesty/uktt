@@ -21,46 +21,12 @@ module Uktt
     end
 
     def retrieve(resource, return_json=false)
-      response = @conn.get do |request|
+      json = @conn.get do |request|
         request.url([@version, resource].join('/'))
-      end
-
-      json = response.body
+      end.body
       return json if return_json
 
-      OpenStruct.new(
-        JSON.parse(
-          json,
-          symbolize_names: true
-        )
-      )
-    end
-
-    def retrieve_all(resource, return_json=false)
-      response = @conn.get do |request|
-        request.url([@version, resource].join('/'))
-      end
-
-      json = response.body
-      return json if return_json
-
-      parsed = JSON.parse(
-        json,
-        symbolize_names: true
-      )
-
-      case Uktt::Http.spec_version
-      when 'v1'
-        parsed.map do |hash|
-          OpenStruct.new(hash)
-        end
-      when 'v2'
-        response = {data: []}
-        parsed[:data].map do |hash|
-          response[:data] << OpenStruct.new(hash)
-        end
-        OpenStruct.new(response)
-      end
+      JSON.parse(json, object_class: OpenStruct)
     end
 
     class << self
@@ -69,6 +35,7 @@ module Uktt
       end
 
       def spec_version
+        return @version unless @version.nil?
         ENV['VER'] ? ENV['VER'].to_s : 'v1'
       end
 
