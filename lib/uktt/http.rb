@@ -44,11 +44,36 @@ module Uktt
       json = response.body
       return json if return_json
 
-      JSON.parse(
+      parsed = JSON.parse(
         json,
         symbolize_names: true
-      ).map do |hash|
-        OpenStruct.new(hash)
+      )
+
+      case Uktt::Http.spec_version
+      when 'v1'
+        parsed.map do |hash|
+          OpenStruct.new(hash)
+        end
+      when 'v2'
+        response = {data: []}
+        parsed[:data].map do |hash|
+          response[:data] << OpenStruct.new(hash)
+        end
+        OpenStruct.new(response)
+      end
+    end
+
+    class << self
+      def use_production
+        !ENV['PROD'].nil? && ENV['PROD'].downcase == 'true'
+      end
+
+      def spec_version
+        ENV['VER'] ? ENV['VER'].to_s : 'v1'
+      end
+
+      def get_host
+        use_production ? Uktt::API_HOST_PROD : Uktt::API_HOST_LOCAL
       end
     end
   end

@@ -2,7 +2,7 @@ module Uktt
   class Heading
     attr_accessor :host, :version, :return_json, :heading_id, :debug
 
-    def initialize(heading_id, json=false, host=nil, version=nil, debug=false)
+    def initialize(heading_id, json=false, host=get_host, version=spec_version, debug=false)
       @host = host
       @version = version
       @heading_id = heading_id

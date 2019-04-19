@@ -12,3 +12,15 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+def use_production
+  Uktt::Http.use_production
+end
+
+def spec_version
+  Uktt::Http.spec_version
+end
+
+def get_host
+  Uktt::Http.get_host
+end

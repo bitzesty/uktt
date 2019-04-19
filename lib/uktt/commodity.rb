@@ -2,7 +2,7 @@ module Uktt
   class Commodity
     attr_accessor :host, :version, :return_json, :commodity_id, :debug
 
-    def initialize(commodity_id, json=false, host=nil, version=nil, debug=false)
+    def initialize(commodity_id, json=false, host=get_host, version=spec_version, debug=false)
       @host = host
       @version = version
       @commodity_id = commodity_id

@@ -2,7 +2,7 @@ module Uktt
   class Chapter
     attr_accessor :host, :version, :return_json, :chapter_id, :debug
 
-    def initialize(chapter_id=nil, json=false, host=nil, version=nil, debug=false)
+    def initialize(chapter_id=nil, json=false, host=get_host, version=spec_version, debug=false)
       @host = host
       @version = version
       @chapter_id = chapter_id
