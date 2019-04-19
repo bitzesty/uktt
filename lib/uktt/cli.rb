@@ -54,6 +54,14 @@ module Uktt
       puts "Finished #{Uktt::Pdf.new(chapter_id, json, host, version, debug, filepath).make}"
     end
 
+    desc 'test', 'Runs API specs'
+    def test
+      host, version, json, debug, filepath = handle_class_options(options)
+      ver = version ? "VER=#{version} " : ''
+      prod = host == API_HOST_PROD ? 'PROD=true ' : ''
+      puts `#{ver}#{prod}bundle exec rspec ./spec/uktt_api_spec.rb`
+    end
+
     desc 'info', 'Prints help for `uktt`'
     method_option :version, aliases: ['-v', '--version']
     def info
