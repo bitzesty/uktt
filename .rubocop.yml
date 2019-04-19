@@ -1,0 +1,21 @@
+AllCops:
+  Exclude:
+    - 'db/**/*'
+    - 'config/**/*'
+    - 'script/**/*'
+    - 'bin/{rails,rake}'
+    - !ruby/regexp /old_and_unused\.rb$/
+    - 'lib/uktt/export_chapter_pdf.rb'
+    - 'vendor/**/*'
+Metrics/ClassLength:
+  Enabled: false
+Metrics/MethodLength:
+  Enabled: false
+Metrics/BlockLength:
+  Enabled: false
+Metrics/LineLength:
+  Enabled: false
+Metrics/CyclomaticComplexity:
+  Max: 8
+Metrics/ParameterLists:
+  Max: 6

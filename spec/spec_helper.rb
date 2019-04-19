@@ -1,9 +1,9 @@
-require "bundler/setup"
-require "uktt"
+require 'bundler/setup'
+require 'uktt'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.example_status_persistence_file_path = '.rspec_status'
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
@@ -21,6 +21,6 @@ def spec_version
   Uktt::Http.spec_version
 end
 
-def get_host
-  Uktt::Http.get_host
+def api_host
+  Uktt::Http.api_host
 end

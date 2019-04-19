@@ -2,8 +2,6 @@ require 'uktt'
 
 RSpec.describe 'UK Trade Tariff gem' do
   host = Uktt::API_HOST_LOCAL
-  production_host = Uktt::API_HOST_PROD
-  version = Uktt::API_VERSION
 
   section_id = '1'
   section_test = Uktt::Section.new(section_id, false, 'foo', spec_version)
@@ -17,22 +15,27 @@ RSpec.describe 'UK Trade Tariff gem' do
   commodity_id = '0101210000'
   commodity_test = Uktt::Commodity.new(commodity_id, false, 'foo', spec_version)
 
-  it "has a version number and is in the correct format" do
+  it 'has a version number and is in the correct format' do
     expect(Uktt::VERSION).not_to be(nil)
     expect(Uktt::VERSION).to match(/^\d+\.\d+\.\d+$/)
   end
-  
+
   it "produces a PDF and saves it in '#{Dir.pwd}'" do
     filepath = Uktt::Pdf.new('test').make_chapter
     expect(filepath).to eq("#{Dir.pwd}/test.pdf")
-    expect(File.read(filepath)[0,4]).to eq('%PDF')
+    expect(File.read(filepath)[0, 4]).to eq('%PDF')
     File.delete(filepath) if File.exist?(filepath)
   end
 
-  it "produces a PDF and saves it at a user-specified filepath" do
-    user_filepath = Uktt::Pdf.new('test', false, nil, nil, false, '/tmp/test.pdf').make_chapter
-    expect(user_filepath).to eq("/tmp/test.pdf")
-    expect(File.read(user_filepath)[0,4]).to eq('%PDF')
+  it 'produces a PDF and saves it at a user-specified filepath' do
+    user_filepath = Uktt::Pdf.new('test',
+                                  false,
+                                  nil,
+                                  nil,
+                                  false,
+                                  '/tmp/test.pdf').make_chapter
+    expect(user_filepath).to eq('/tmp/test.pdf')
+    expect(File.read(user_filepath)[0, 4]).to eq('%PDF')
     File.delete(user_filepath) if File.exist?(user_filepath)
   end
 

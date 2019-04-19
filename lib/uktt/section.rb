@@ -1,8 +1,13 @@
 module Uktt
+  # A Section object for dealing with an API resource
   class Section
     attr_accessor :host, :version, :return_json, :section_id, :debug
 
-    def initialize(section_id=nil, json=false, host=get_host, version=spec_version, debug=false)
+    def initialize(section_id = nil,
+                   json = false,
+                   host = api_host,
+                   version = spec_version,
+                   debug = false)
       @host = host
       @version = version
       @section_id = section_id
