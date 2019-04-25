@@ -17,6 +17,8 @@ RSpec.describe 'UK Trade Tariff API client' do
   commodity = Uktt::Commodity.new(commodity_id, false, api_host, spec_version)
   commodity_json = Uktt::Commodity.new(commodity_id, true)
 
+  monetary_exchange_rate = Uktt::MonetaryExchangeRate.new(nil, false, api_host, spec_version)
+
   it 'retrieves one section as OpenStruct' do
     response = section.retrieve
     expect(response).to be_an_instance_of(OpenStruct)
@@ -162,4 +164,19 @@ RSpec.describe 'UK Trade Tariff API client' do
       expect(response[:data][:attributes][:goods_nomenclature_item_id]).to eq(commodity_id)
     end
   end
+
+  it 'retrieves monetary exchange rates as [OpenStructs]' do
+    response = monetary_exchange_rate.retrieve_all
+    case spec_version
+    when 'v1'
+      expect(response).to be_an_instance_of(Array)
+      expect(response.first).to be_an_instance_of(OpenStruct)
+      expect(response.first).to respond_to(:exchange_rate)
+    when 'v2'
+      expect(response.data).to be_an_instance_of(Array)
+      expect(response.data.first).to be_an_instance_of(OpenStruct)
+      expect(response.data.first.attributes).to respond_to(:exchange_rate)
+    end
+  end
+
 end

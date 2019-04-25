@@ -9,6 +9,7 @@ module Uktt
   CHAPTER =         'chapters'.freeze
   HEADING =         'headings'.freeze
   COMMODITY =       'commodities'.freeze
+  M_X_RATE =        'monetary_exchange_rates'.freeze
 
   # An object for handling network requests
   class Http
