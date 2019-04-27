@@ -5,6 +5,7 @@ require 'uktt/chapter'
 require 'uktt/heading'
 require 'uktt/commodity'
 require 'uktt/monetary_exchange_rate'
+require 'uktt/quota'
 require 'uktt/pdf'
 
 module Uktt

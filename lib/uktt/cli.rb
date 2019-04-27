@@ -29,15 +29,20 @@ module Uktt
                  type: :boolean,
                  desc: 'Show request and response headers, otherwise not shown',
                  banner: true
+    class_option :goods, aliases: ['-g', '--goods'],
+                 type: :string,
+                 desc: 'Retrieve goods nomenclatures in this chapter',
+                 banner: false
 
     desc 'section', 'Retrieves a section'
     def section(section_id)
-      host, version, json, debug = handle_class_options(options)
-      puts Uktt::Section.new(section_id,
+      host, version, json, debug, _filepath, goods = handle_class_options(options)
+      uktt = Uktt::Section.new(section_id,
                              json,
                              host,
                              version,
-                             debug).retrieve
+                             debug)
+      puts uktt.send(goods ? :goods_nomenclatures : :retrieve)
     end
 
     desc 'sections', 'Retrieves all sections'
@@ -52,12 +57,13 @@ module Uktt
 
     desc 'chapter', 'Retrieves a chapter'
     def chapter(chapter_id)
-      host, version, json, debug = handle_class_options(options)
-      puts Uktt::Chapter.new(chapter_id,
-                             json,
-                             host,
-                             version,
-                             debug).retrieve
+      host, version, json, debug, _filepath, goods = handle_class_options(options)
+      uktt = Uktt::Chapter.new(chapter_id,
+                               json,
+                               host,
+                               version,
+                               debug)
+      puts uktt.send(goods ? :goods_nomenclatures : :retrieve)
     end
 
     desc 'chapters', 'Retrieves all chapters'
@@ -71,13 +77,15 @@ module Uktt
     end
 
     desc 'heading', 'Retrieves a heading'
-    def heading(heading_id)
-      host, version, json, debug = handle_class_options(options)
-      puts Uktt::Heading.new(heading_id,
-                             json,
-                             host,
-                             version,
-                             debug).retrieve
+    def heading(heading_id, *params)
+      puts params.inspect
+      host, version, json, debug, _filepath, goods = handle_class_options(options)
+      uktt = Uktt::Heading.new(heading_id,
+                              json,
+                              host,
+                              version,
+                              debug)
+      puts uktt.send(goods ? :goods_nomenclatures : :retrieve)
     end
 
     desc 'commodity', 'Retrieves a commodity'
@@ -134,7 +142,8 @@ module Uktt
           options[:api_version] || 'v1',
           options[:json] || false,
           options[:debug] || false,
-          options[:filepath] || nil
+          options[:filepath] || nil,
+          options[:goods] || false
         ]
       end
     end

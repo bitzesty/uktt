@@ -5,8 +5,8 @@ module Uktt
 
     def initialize(section_id = nil,
                    json = false,
-                   host = api_host,
-                   version = spec_version,
+                   host = Uktt::Http.api_host,
+                   version = Uktt::Http.spec_version,
                    debug = false)
       @host = host
       @version = version
@@ -16,12 +16,24 @@ module Uktt
     end
 
     def retrieve
-      resource = "#{SECTION}/#{@section_id}.json"
-      Uktt::Http.new(@host, @version, @debug).retrieve(resource, @return_json)
+      fetch "#{SECTION}/#{@section_id}.json"
     end
 
     def retrieve_all
-      resource = "#{SECTION}.json"
+      fetch "#{SECTION}.json"
+    end
+
+    def goods_nomenclatures
+      fetch "#{GOODS_NOMENCLATURE}/section/#{@section_id}.json"
+    end
+
+    def note
+      fetch "#{SECTION}/#{@section_id}/section_note.json"
+    end
+
+    private
+
+    def fetch(resource)
       Uktt::Http.new(@host, @version, @debug).retrieve(resource, @return_json)
     end
   end

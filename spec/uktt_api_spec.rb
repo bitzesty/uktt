@@ -19,6 +19,16 @@ RSpec.describe 'UK Trade Tariff API client' do
 
   monetary_exchange_rate = Uktt::MonetaryExchangeRate.new(nil, false, api_host, spec_version)
 
+  quota = Uktt::Quota.new(nil, false, api_host, spec_version)
+  quota_json = Uktt::Quota.new(nil, true, api_host, spec_version)
+  quota_search_params = {
+    goods_nomenclature_item_id: '0805102200',
+    year: '2018',
+    geographical_area_id: 'EG',
+    order_number: '091784',
+    status: 'not blocked'
+  }
+
   it 'retrieves one section as OpenStruct' do
     response = section.retrieve
     expect(response).to be_an_instance_of(OpenStruct)
@@ -26,7 +36,7 @@ RSpec.describe 'UK Trade Tariff API client' do
     when 'v1'
       expect(response.position.to_s).to eq(section_id)
     when 'v2'
-      expect(response.data[:attributes][:position].to_s).to eq(section_id)
+      expect(response.data.attributes.position.to_s).to eq(section_id)
     end
   end
 
@@ -38,6 +48,28 @@ RSpec.describe 'UK Trade Tariff API client' do
       expect(response[:position].to_s).to eq(section_id)
     when 'v2'
       expect(response[:data][:attributes][:position].to_s).to eq(section_id)
+    end
+  end
+
+  it 'retrieves one section\'s note as OpenStruct' do
+    response = section.note
+    expect(response).to be_an_instance_of(OpenStruct)
+    case spec_version
+    when 'v1'
+      expect(response.section_id.to_s).to eq(section_id)
+    when 'v2'
+      expect(response.section_id.to_s).to eq(section_id)
+    end
+  end
+
+  it 'retrieves one section\'s note as JSON' do
+    response = JSON.parse(section_json.note, symbolize_names: true)
+    expect(response).to be_an_instance_of(Hash)
+    case spec_version
+    when 'v1'
+      expect(response[:section_id].to_s).to eq(section_id)
+    when 'v2'
+      expect(response[:section_id].to_s).to eq(section_id)
     end
   end
 
@@ -90,6 +122,68 @@ RSpec.describe 'UK Trade Tariff API client' do
       expect(response[:data][:attributes][:goods_nomenclature_item_id]).to eq("#{chapter_id}00000000")
     end
   end
+  
+  it 'retrieves one chapter\'s note as OpenStruct' do
+    response = chapter.note
+    expect(response).to be_an_instance_of(OpenStruct)
+    case spec_version
+    when 'v1'
+      expect(response.section_id.to_s).to eq(section_id)
+      expect(response.chapter_id).to eq(chapter_id)
+    when 'v2'
+      expect(response.section_id.to_s).to eq(section_id)
+      expect(response.chapter_id.to_s).to eq(chapter_id)
+    end
+  end
+
+  it 'retrieves one chapter\'s note as JSON' do
+    response = JSON.parse(chapter_json.note, symbolize_names: true)
+    expect(response).to be_an_instance_of(Hash)
+    case spec_version
+    when 'v1'
+      expect(response[:section_id].to_s).to eq(section_id)
+      expect(response[:chapter_id].to_s).to eq(chapter_id)
+    when 'v2'
+      expect(response[:section_id].to_s).to eq(section_id)
+      expect(response[:chapter_id].to_s).to eq(chapter_id)
+    end
+  end
+
+  it 'retrieves one chapter\'s note as JSON' do
+    response = JSON.parse(chapter_json.changes, symbolize_names: true)
+    case spec_version
+    when 'v1'
+      expect(response).to be_an_instance_of(Array)
+      expect(response.first).to have_key(:oid)
+    when 'v2'
+      expect(response).to be_an_instance_of(Hash)
+      expect(response[:data].first[:attributes]).to have_key(:oid)
+    end
+  end
+
+  it 'retrieves one chapter\'s changes as OpenStruct' do
+    response = chapter.changes
+    case spec_version
+    when 'v1'
+      expect(response).to be_an_instance_of(Array)
+      expect(response.first).to respond_to(:oid)
+    when 'v2'
+      expect(response).to be_an_instance_of(OpenStruct)
+      expect(response.data.first.attributes).to respond_to(:oid)
+    end
+  end
+
+  it 'retrieves one chapter\'s changes as JSON' do
+    response = chapter.changes
+    case spec_version
+    when 'v1'
+      expect(response).to be_an_instance_of(Array)
+      expect(response.first).to respond_to(:oid)
+    when 'v2'
+      expect(response).to be_an_instance_of(OpenStruct)
+      expect(response.data.first.attributes).to respond_to(:oid)
+    end
+  end
 
   it 'retrieves all chapters as [OpenStructs]' do
     response = chapter.retrieve_all
@@ -129,6 +223,42 @@ RSpec.describe 'UK Trade Tariff API client' do
     end
   end
 
+  it 'retrieves one heading\'s changes as OpenStruct' do
+    response = heading.changes
+    case spec_version
+    when 'v1'
+      expect(response).to be_an_instance_of(Array)
+      expect(response.first).to respond_to(:oid)
+    when 'v2'
+      expect(response).to be_an_instance_of(OpenStruct)
+      expect(response.data.first.attributes).to respond_to(:oid)
+    end
+  end
+
+  it 'retrieves one heading\'s changes as JSON' do
+    response = JSON.parse(heading_json.changes, symbolize_names: true)
+    case spec_version
+    when 'v1'
+      expect(response).to be_an_instance_of(Array)
+      expect(response.first).to have_key(:oid)
+    when 'v2'
+      expect(response).to be_an_instance_of(Hash)
+      expect(response[:data].first[:attributes]).to have_key(:oid)
+    end
+  end
+
+  it 'retrieves one heading\'s note as JSON' do
+    response = JSON.parse(heading_json.changes, symbolize_names: true)
+    case spec_version
+    when 'v1'
+      expect(response).to be_an_instance_of(Array)
+      expect(response.first).to have_key(:oid)
+    when 'v2'
+      expect(response).to be_an_instance_of(Hash)
+      expect(response[:data].first[:attributes]).to have_key(:oid)
+    end
+  end
+
   it 'retrieves one heading as JSON' do
     response = JSON.parse(heading_json.retrieve, symbolize_names: true)
     case spec_version
@@ -165,6 +295,30 @@ RSpec.describe 'UK Trade Tariff API client' do
     end
   end
 
+  it 'retrieves one commodity\'s changes as OpenStruct' do
+    response = commodity.changes
+    case spec_version
+    when 'v1'
+      expect(response).to be_an_instance_of(Array)
+      expect(response.first).to respond_to(:oid)
+    when 'v2'
+      expect(response).to be_an_instance_of(OpenStruct)
+      expect(response.data.first.attributes).to respond_to(:oid)
+    end
+  end
+
+  it 'retrieves one commodity\'s changes as JSON' do
+    response = JSON.parse(commodity_json.changes, symbolize_names: true)
+    case spec_version
+    when 'v1'
+      expect(response).to be_an_instance_of(Array)
+      expect(response.first).to have_key(:oid)
+    when 'v2'
+      expect(response).to be_an_instance_of(Hash)
+      expect(response[:data].first[:attributes]).to have_key(:oid)
+    end
+  end
+
   it 'retrieves monetary exchange rates as [OpenStructs]' do
     response = monetary_exchange_rate.retrieve_all
     case spec_version
@@ -179,4 +333,84 @@ RSpec.describe 'UK Trade Tariff API client' do
     end
   end
 
+  it 'retrieves goods nomenclatures for a heading as [OpenStructs]' do
+    case spec_version
+    when 'v2'
+      response = heading.goods_nomenclatures
+
+      expect(response.data).to be_an_instance_of(Array)
+      expect(response.data.first).to be_an_instance_of(OpenStruct)
+      expect(response.data.first.attributes).to respond_to(:goods_nomenclature_item_id)
+    end
+  end
+
+  it 'retrieves goods nomenclatures for a heading as JSON' do
+    case spec_version
+    when 'v2'
+      response = JSON.parse(heading_json.goods_nomenclatures, symbolize_names: true)
+
+      expect(response).to be_an_instance_of(Hash)
+      expect(response[:data].first[:attributes][:goods_nomenclature_item_id]).to eq("#{heading_id}000000")
+    end
+  end
+
+  it 'retrieves goods nomenclatures for a chapter as [OpenStructs]' do
+    case spec_version
+    when 'v2'
+      response = chapter.goods_nomenclatures
+
+      expect(response.data).to be_an_instance_of(Array)
+      expect(response.data.first).to be_an_instance_of(OpenStruct)
+      expect(response.data.first.attributes).to respond_to(:goods_nomenclature_item_id)
+    end
+  end
+
+  it 'retrieves goods nomenclatures for a chapter as JSON' do
+    case spec_version
+    when 'v2'
+      response = JSON.parse(chapter_json.goods_nomenclatures, symbolize_names: true)
+
+      expect(response).to be_an_instance_of(Hash)
+      expect(response[:data].first[:attributes][:goods_nomenclature_item_id][0..1]).to eq(chapter_id)
+    end
+  end
+
+  it 'retrieves goods nomenclatures for a section as [OpenStructs]' do
+    case spec_version
+    when 'v2'
+      response = section.goods_nomenclatures
+
+      expect(response.data).to be_an_instance_of(Array)
+      expect(response.data.first).to be_an_instance_of(OpenStruct)
+      expect(response.data.first.attributes).to respond_to(:goods_nomenclature_item_id)
+    end
+  end
+
+  it 'retrieves goods nomenclatures for a section as JSON' do
+    case spec_version
+    when 'v2'
+      response = JSON.parse(section_json.goods_nomenclatures, symbolize_names: true)
+
+      expect(response).to be_an_instance_of(Hash)
+      expect(response[:data].first[:attributes][:goods_nomenclature_item_id]).to be_an_instance_of(String)
+    end
+  end
+
+  it 'performs a search and returns [OpenStructs]' do
+    case spec_version
+    when 'v2'
+      response = quota.search(quota_search_params)
+
+      expect(response.data.first.attributes.goods_nomenclature_item_id).to eq(quota_search_params[:goods_nomenclature_item_id])
+    end
+  end
+
+  it 'performs a search and returns JSON' do
+    case spec_version
+    when 'v2'
+      response = JSON.parse(quota_json.search(quota_search_params), symbolize_names: true)
+
+      expect(response[:data].first[:attributes][:goods_nomenclature_item_id]).to eq(quota_search_params[:goods_nomenclature_item_id])
+    end
+  end
 end

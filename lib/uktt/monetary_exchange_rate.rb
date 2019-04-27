@@ -1,12 +1,12 @@
 module Uktt
-  # A Section object for dealing with an API resource
+  # A MonetaryExchangeRate object for dealing with an API resource
   class MonetaryExchangeRate
     attr_accessor :host, :version, :return_json, :section_id, :debug
 
     def initialize(section_id = nil,
                    json = false,
-                   host = api_host,
-                   version = spec_version,
+                   host = Uktt::Http.api_host,
+                   version = Uktt::Http.spec_version,
                    debug = false)
       @host = host
       @version = version
@@ -16,7 +16,12 @@ module Uktt
     end
 
     def retrieve_all
-      resource = "#{M_X_RATE}.json"
+      fetch "#{M_X_RATE}.json"
+    end
+
+    private
+
+    def fetch(resource)
       Uktt::Http.new(@host, @version, @debug).retrieve(resource, @return_json)
     end
   end
