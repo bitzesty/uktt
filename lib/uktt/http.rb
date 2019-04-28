@@ -2,17 +2,6 @@ require 'faraday'
 require 'json'
 
 module Uktt
-  API_HOST_PROD =       'https://www.trade-tariff.service.gov.uk'.freeze
-  API_HOST_LOCAL =      'http://localhost:3002'.freeze
-  API_VERSION =         'v1'.freeze
-  SECTION =             'sections'.freeze
-  CHAPTER =             'chapters'.freeze
-  HEADING =             'headings'.freeze
-  COMMODITY =           'commodities'.freeze
-  M_X_RATE =            'monetary_exchange_rates'.freeze
-  GOODS_NOMENCLATURE =  'goods_nomenclatures'.freeze
-  QUOTA =               'quotas'.freeze
-
   # An object for handling network requests
   class Http
     def initialize(host = nil, version = nil, debug = false)

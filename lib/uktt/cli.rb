@@ -4,17 +4,22 @@ require 'uktt'
 module Uktt
   # Implemets a CLI using Thor
   class CLI < Thor
-    class_option :api_version,
-                 aliases: ['-a', '--api-version'],
-                 type: :string,
-                 desc: 'Request a specific API version, otherwise `v1`',
-                 banner: 'v1'
     class_option :host,
                  aliases: ['-h', '--host'],
                  type: :string,
                  desc: "Use specified API host, otherwise `#{API_HOST_LOCAL}`",
                  banner: 'http://localhost:3002'
-    class_option :json,
+    class_option :version,
+                 aliases: ['-a', '--api-version'],
+                 type: :string,
+                 desc: 'Request a specific API version, otherwise `v1`',
+                 banner: 'v1'
+    class_option :debug,
+                 aliases: ['-d', '--debug'],
+                 type: :boolean,
+                 desc: 'Show request and response headers, otherwise not shown',
+                 banner: true
+    class_option :return_json,
                  aliases: ['-j', '--json'],
                  type: :boolean,
                  desc: 'Request JSON response, otherwise OpenStruct',
@@ -24,78 +29,78 @@ module Uktt
                  type: :string,
                  desc: "Use production API host, otherwise `#{API_HOST_LOCAL}`",
                  banner: true
-    class_option :debug,
-                 aliases: ['-d', '--debug'],
-                 type: :boolean,
-                 desc: 'Show request and response headers, otherwise not shown',
-                 banner: true
     class_option :goods, aliases: ['-g', '--goods'],
                  type: :string,
-                 desc: 'Retrieve goods nomenclatures in this chapter',
+                 desc: 'Retrieve goods nomenclatures in this object',
+                 banner: false
+    class_option :note, aliases: ['-n', '--note'],
+                 type: :string,
+                 desc: 'Retrieve a note for this object',
+                 banner: false
+    class_option :changes, aliases: ['-c', '--changes'],
+                 type: :string,
+                 desc: 'Retrieve changes for this object',
                  banner: false
 
     desc 'section', 'Retrieves a section'
     def section(section_id)
-      host, version, json, debug, _filepath, goods = handle_class_options(options)
-      uktt = Uktt::Section.new(section_id,
-                             json,
-                             host,
-                             version,
-                             debug)
-      puts uktt.send(goods ? :goods_nomenclatures : :retrieve)
+      if options[:goods] && options[:version] != 'v2'
+        puts 'V2 is required. Use `-a v2`'
+        return
+      end
+
+      uktt = Uktt::Section.new(options.merge(host: host, section_id: section_id))
+      puts uktt.send(action)
     end
 
     desc 'sections', 'Retrieves all sections'
     def sections
-      host, version, json, debug = handle_class_options(options)
-      puts Uktt::Section.new(nil,
-                             json,
-                             host,
-                             version,
-                             debug).retrieve_all
+      puts Uktt::Section.new(options).retrieve_all
     end
 
     desc 'chapter', 'Retrieves a chapter'
     def chapter(chapter_id)
-      host, version, json, debug, _filepath, goods = handle_class_options(options)
-      uktt = Uktt::Chapter.new(chapter_id,
-                               json,
-                               host,
-                               version,
-                               debug)
-      puts uktt.send(goods ? :goods_nomenclatures : :retrieve)
+      if options[:goods] && options[:version] != 'v2'
+        puts 'V2 is required. Use `-a v2`'
+        return
+      end
+      
+      uktt = Uktt::Chapter.new(options.merge(host: host, chapter_id: chapter_id))
+      puts uktt.send(action)
     end
 
     desc 'chapters', 'Retrieves all chapters'
     def chapters
-      host, version, json, debug = handle_class_options(options)
-      puts Uktt::Chapter.new(nil,
-                             json,
-                             host,
-                             version,
-                             debug).retrieve_all
+      puts Uktt::Chapter.new(options).retrieve_all
     end
 
     desc 'heading', 'Retrieves a heading'
-    def heading(heading_id, *params)
-      puts params.inspect
-      host, version, json, debug, _filepath, goods = handle_class_options(options)
-      uktt = Uktt::Heading.new(heading_id,
-                              json,
-                              host,
-                              version,
-                              debug)
-      puts uktt.send(goods ? :goods_nomenclatures : :retrieve)
+    def heading(heading_id)
+      if options[:goods] && options[:version] != 'v2'
+        puts 'V2 is required. Use `-a v2`'
+        return
+      elsif options[:note]
+        puts 'Option not supported for this object'
+        return 1
+      end
+      
+      uktt = Uktt::Heading.new(options.merge(host: host, heading_id: heading_id))
+      puts uktt.send(action)
     end
 
     desc 'commodity', 'Retrieves a commodity'
     def commodity(commodity_id)
-      host, version, json, debug = handle_class_options(options)
-      puts Uktt::Commodity.new(commodity_id,
-                               json,
-                               host,
-                               version,
-                               debug).retrieve
+      if options[:goods] || options[:note]
+        puts 'Option not supported for this object'
+        return
+      end
+      
+      puts Uktt::Commodity.new(options.merge(host: host, commodity_id: commodity_id)).send(action)
+    end
+
+    desc 'monetary_exchange_rates', 'Retrieves monetary exchange rates'
+    def monetary_exchange_rates
+      puts Uktt::MonetaryExchangeRate.new(options).retrieve_all
     end
 
     desc 'pdf', 'Makes a PDF of a chapter'
@@ -143,8 +148,26 @@ module Uktt
           options[:json] || false,
           options[:debug] || false,
           options[:filepath] || nil,
-          options[:goods] || false
+          options[:goods] || false,
+          options[:note] || false,
+          options[:changes] || false,
         ]
+      end
+
+      def action
+        if options[:goods]
+          return :goods_nomenclatures
+        elsif options[:note]
+          return :note
+        elsif options[:changes]
+          return :changes
+        else
+          return :retrieve
+        end
+      end
+
+      def host
+        options[:prod] ? API_HOST_PROD : Uktt::Http.api_host
       end
     end
   end

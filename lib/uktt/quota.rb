@@ -1,28 +1,31 @@
 module Uktt
   # A Quota object for dealing with an API resource
   class Quota
-    attr_accessor :host, :version, :return_json, :obj_type, :debug
+    attr_accessor :config
 
-    def initialize(obj_type = nil,
-                   json = false,
-                   host = Uktt::Http.api_host,
-                   version = Uktt::Http.spec_version,
-                   debug = false)
-      @host = host
-      @version = version
-      @obj_type = obj_type
-      @return_json = json
-      @debug = debug
+    def initialize(opts = {})
+      Uktt.configure(opts)
+      @config = Uktt.config
     end
 
     def search(params)
       fetch "#{QUOTA}/search.json?#{URI.encode_www_form(params)}"
     end
 
+    def config=(new_opts = {})
+      merged_opts = Uktt.config.merge(new_opts)
+      Uktt.configure merged_opts
+      @config = Uktt.config
+    end
+
     private
 
     def fetch(resource)
-      Uktt::Http.new(@host, @version, @debug).retrieve(resource, @return_json)
+      Uktt::Http.new(@config[:host], 
+                     @config[:version], 
+                     @config[:debug])
+      .retrieve(resource, 
+                     @config[:return_json])
     end
   end
 end
