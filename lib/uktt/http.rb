@@ -34,6 +34,8 @@ module Uktt
       end
 
       def api_host
+        return ENV['HOST'] if ENV['HOST']
+        
         use_production ? Uktt::API_HOST_PROD : Uktt::API_HOST_LOCAL
       end
     end

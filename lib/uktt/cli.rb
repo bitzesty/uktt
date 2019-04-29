@@ -55,7 +55,7 @@ module Uktt
 
     desc 'sections', 'Retrieves all sections'
     def sections
-      puts Uktt::Section.new(options).retrieve_all
+      puts Uktt::Section.new(options.merge(host: host)).retrieve_all
     end
 
     desc 'chapter', 'Retrieves a chapter'
@@ -71,7 +71,7 @@ module Uktt
 
     desc 'chapters', 'Retrieves all chapters'
     def chapters
-      puts Uktt::Chapter.new(options).retrieve_all
+      puts Uktt::Chapter.new(options.merge(host: host)).retrieve_all
     end
 
     desc 'heading', 'Retrieves a heading'
@@ -100,7 +100,7 @@ module Uktt
 
     desc 'monetary_exchange_rates', 'Retrieves monetary exchange rates'
     def monetary_exchange_rates
-      puts Uktt::MonetaryExchangeRate.new(options).retrieve_all
+      puts Uktt::MonetaryExchangeRate.new(options.merge(host: host)).retrieve_all
     end
 
     desc 'pdf', 'Makes a PDF of a chapter'
