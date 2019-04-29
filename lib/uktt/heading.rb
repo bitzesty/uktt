@@ -21,6 +21,10 @@ module Uktt
       fetch "#{GOODS_NOMENCLATURE}/heading/#{@heading_id}.json"
     end
 
+    def note
+      'a heading cannot have a note'
+    end
+
     def changes
       return '@chapter_id cannot be nil' if @heading_id.nil?
 
@@ -30,6 +34,7 @@ module Uktt
     def config=(new_opts = {})
       merged_opts = Uktt.config.merge(new_opts)
       Uktt.configure merged_opts
+      @heading_id = merged_opts[:heading_id] || @heading_id
       @config = Uktt.config
     end
 
