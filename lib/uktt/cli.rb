@@ -47,6 +47,9 @@ module Uktt
       if options[:goods] && options[:version] != 'v2'
         puts 'V2 is required. Use `-a v2`'
         return
+      elsif options[:changes]
+        puts 'Option not supported for this object'
+        return
       end
 
       uktt = Uktt::Section.new(options.merge(host: host, section_id: section_id))
@@ -81,7 +84,7 @@ module Uktt
         return
       elsif options[:note]
         puts 'Option not supported for this object'
-        return 1
+        return
       end
       
       uktt = Uktt::Heading.new(options.merge(host: host, heading_id: heading_id))
@@ -167,6 +170,8 @@ module Uktt
       end
 
       def host
+        return ENV['HOST'] if ENV['HOST']
+
         options[:prod] ? API_HOST_PROD : Uktt::Http.api_host
       end
     end
