@@ -7,12 +7,20 @@ class ExportChapterPdf
 
   THIRD_COUNTRY = '103'.freeze
 
-  def initialize(chapter_id, _json, host, version, debug)
-    @host = host
-    @version = version
-    @chapter_id = chapter_id
-    @return_json = false # force to FALSE, `ExportChapterPdf` uses Openstruct/ruby hash
-    @debug = debug
+  def initialize(opts = {})
+    # @host = host
+    # @version = version
+    # @chapter_id = chapter_id
+    # @return_json = false # force to FALSE, `ExportChapterPdf` uses Openstruct/ruby hash
+    # @debug = debug
+    # @opts = {
+    #   return_json: false, 
+    #   host: host, 
+    #   version: version, 
+    #   debug: debug
+    # }
+    @opts = opts
+    @chapter_id = opts[:chapter_id]
 
     @margin = [50, 50, 20, 50]
     @footer_height = 30
@@ -34,16 +42,17 @@ class ExportChapterPdf
 
     set_fonts
 
-    unless chapter_id.to_s == 'test'
-      @chapter = Uktt::Chapter.new(chapter_id, @json, @host, @version, @debug).retrieve
-      @section = Uktt::Section.new(@chapter[:section][:id], @json, @host, @version, @debug).retrieve
+    unless @chapter_id.to_s == 'test'
+
+      @chapter = Uktt::Chapter.new(@opts.merge(chapter_id: @chapter_id)).retrieve
+      @section = Uktt::Section.new(@opts.merge(section_id: @chapter.section.id)).retrieve
       @current_heading = @section[:formatted_position]
     end
 
     bounding_box([0, @printable_height],
                  width: @printable_width,
                  height: @printable_height - @footer_height) do
-      if chapter_id.to_s == 'test'
+      if @chapter_id.to_s == 'test'
         test
         return
       else
@@ -380,7 +389,7 @@ class ExportChapterPdf
 
     chapter[:headings] && chapter[:headings].each do |openstruct|
       h = openstruct.to_h
-      heading = Uktt::Heading.new(h[:goods_nomenclature_item_id][0..3], @json, @host, @version, @debug).retrieve.to_h
+      heading = Uktt::Heading.new(@opts.merge(heading_id: h[:goods_nomenclature_item_id][0..3])).retrieve.to_h
       heading = h.merge(heading)
 
       result << heading_row(heading)
@@ -401,7 +410,7 @@ class ExportChapterPdf
 
       heading[:commodities] && heading[:commodities].each do |os|
         c = os.to_h
-        commodity = Uktt::Commodity.new(c[:goods_nomenclature_item_id], @json, @host, @version, @debug).retrieve.to_h
+        commodity = Uktt::Commodity.new(@opts.merge(commodity_id: c[:goods_nomenclature_item_id])).retrieve.to_h
         commodity = c.merge(commodity)
 
         update_footnotes(commodity) if commodity[:declarable]

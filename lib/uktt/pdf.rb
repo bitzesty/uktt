@@ -3,27 +3,27 @@ require 'uktt/export_chapter_pdf'
 module Uktt
   # An object for producing PDF files of individual chapters in the Tariff
   class Pdf
-    def initialize(chapter_id = nil,
-                   _json = false,
-                   host = nil,
-                   version = nil,
-                   debug = false,
-                   filepath = nil)
-      @host = host
-      @version = version
-      @chapter_id = chapter_id
-      @return_json = false # use Openstruct/ruby hash
-      @debug = debug
-      @filepath = filepath || "#{Dir.pwd}/#{@chapter_id}.pdf"
+    attr_accessor :chapter_id, :config
+
+    def initialize(opts = {})
+      @chapter_id = opts[:chapter_id] || nil
+      @filepath = opts[:filepath] || "#{Dir.pwd}/#{@chapter_id}.pdf"
+      Uktt.configure(opts)
+      @config = Uktt.config
     end
 
     def make_chapter
-      pdf = ExportChapterPdf.new(@chapter_id,
-                                 @return_json,
-                                 @host,
-                                 @version, @debug)
+      pdf = ExportChapterPdf.new(@config.merge(chapter_id: @chapter_id))
       pdf.save_as(@filepath)
       @filepath
+    end
+
+    def config=(new_opts = {})
+      merged_opts = Uktt.config.merge(new_opts)
+      Uktt.configure merged_opts
+      @chapter_id = merged_opts[:chapter_id] || @chapter_id
+      @filepath = merged_opts[:filepath] || @filepath
+      @config = Uktt.config
     end
   end
 end

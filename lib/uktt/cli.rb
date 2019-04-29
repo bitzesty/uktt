@@ -112,14 +112,8 @@ module Uktt
                              desc: 'Save PDF to path and name, otherwise saves in `pwd`',
                              banner: '`pwd`'
     def pdf(chapter_id)
-      host, version, json, debug, filepath = handle_class_options(options)
       puts "Making a PDF for Chapter #{chapter_id}"
-      puts "Finished #{Uktt::Pdf.new(chapter_id,
-                                     json,
-                                     host,
-                                     version,
-                                     debug,
-                                     filepath).make_chapter}"
+      puts "Finished #{Uktt::Pdf.new(chapter_id: chapter_id).make_chapter}"
     end
 
     desc 'test', 'Runs API specs'
