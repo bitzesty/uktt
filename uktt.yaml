@@ -1,0 +1,5 @@
+---
+  host: http://localhost:3002
+  version: v1
+  debug: false
+  return_json: false

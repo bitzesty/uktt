@@ -8,6 +8,9 @@ require 'uktt/monetary_exchange_rate'
 require 'uktt/quota'
 require 'uktt/pdf'
 
+require 'yaml'
+require 'psych'
+
 module Uktt
   API_HOST_PROD =       'https://www.trade-tariff.service.gov.uk'.freeze
   API_HOST_LOCAL =      'http://localhost:3002'.freeze
