@@ -40,7 +40,7 @@ module Uktt
     def config=(new_opts = {})
       merged_opts = Uktt.config.merge(new_opts)
       Uktt.configure merged_opts
-      @chapter_id = merged_opts[:chapter_id] || @section_id
+      @chapter_id = merged_opts[:chapter_id] || @chapter_id
       @config = Uktt.config
     end
 
