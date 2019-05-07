@@ -6,6 +6,7 @@ class ExportChapterPdf
   include Prawn::View
 
   THIRD_COUNTRY = '103'.freeze
+  TARIFF_PREFERENCE = '142'.freeze
 
   def initialize(opts = {})
     # @host = host
@@ -43,9 +44,8 @@ class ExportChapterPdf
     set_fonts
 
     unless @chapter_id.to_s == 'test'
-
-      @chapter = Uktt::Chapter.new(@opts.merge(chapter_id: @chapter_id)).retrieve
-      @section = Uktt::Section.new(@opts.merge(section_id: @chapter.section.id)).retrieve
+      @chapter = Uktt::Chapter.new(@opts.merge(chapter_id: @chapter_id, version: 'v2')).retrieve
+      @section = Uktt::Section.new(@opts.merge(section_id: @chapter.data.relationships.section.data.id, version: 'v2')).retrieve
       @current_heading = @section[:formatted_position]
     end
 
@@ -95,7 +95,7 @@ class ExportChapterPdf
   end
 
   def build
-    if @chapter[:goods_nomenclature_item_id][0..1] == @section[:chapter_from]
+    if @chapter.data.attributes.goods_nomenclature_item_id[0..1] == @section.data.attributes.chapter_from
       section_info
       pad(16) { stroke_horizontal_rule }
     end
@@ -133,8 +133,8 @@ class ExportChapterPdf
     # `@pages_headings = {1=>["01", "02", "03", "04"], 2=>["04", "05", "06"]}`
     footer_data_array = [[
       format_text("<font size=9 name='CabinCondensed'>#{Date.today.strftime('%-d %B %Y')}</font>"),
-      format_text("<b><font size='15' name='CabinCondensed'>#{@chapter[:short_code]}</font>#{Prawn::Text::NBSP * 2}#{page_number}</b>"),
-      format_text("<b><font size=9 name='CabinCondensed'>Customs Tariff</b> Vol 2 Sect #{@section[:numeral]}#{Prawn::Text::NBSP * 3}<b>#{@chapter[:short_code]} #{@pages_headings[page_number].first}-#{@chapter[:short_code]} #{@pages_headings[page_number].last}</font></b>")
+      format_text("<b><font size='15' name='CabinCondensed'>#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]}</font>#{Prawn::Text::NBSP * 2}#{page_number}</b>"),
+      format_text("<b><font size=9 name='CabinCondensed'>Customs Tariff</b> Vol 2 Sect #{@section.data.attributes.numeral}#{Prawn::Text::NBSP * 3}<b>#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]} #{@pages_headings[page_number].first}-#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]} #{@pages_headings[page_number].last}</font></b>")
     ]]
     footer_data_array
   end
@@ -203,8 +203,8 @@ class ExportChapterPdf
         padding_bottom: 0
       }
     }
-    column_1 = format_text("<b><font size='13'>SECTION #{section[:numeral]}</font>\n<font size='17'>#{section[:title]}</font></b>")
-    _column_x, column_2, column_3 = get_notes_columns(section[:section_note], opts, 'Notes', 10)
+    column_1 = format_text("<b><font size='13'>SECTION #{section.data.attributes.numeral}</font>\n<font size='17'>#{section.data.attributes.title}</font></b>")
+    _column_x, column_2, column_3 = get_notes_columns(section.data.attributes.section_note, opts, 'Notes', 10)
     table(
       [
         [
@@ -222,16 +222,15 @@ class ExportChapterPdf
   end
 
   def chapter_info(chapter = @chapter)
-    notes, additional_notes, *everything_else = chapter[:chapter_note]
-                                                .to_s
-                                                .split(/#+\s{0,}[Additional|Subheading]+ Note[s]{0,}\s{0,}#+/i)
-                                                .map do |s|
-      s.delete('\\')
-       .gsub("\r\n\r\n", "\r\n")
-       .strip
-    end
+    notes, additional_notes, *everything_else = chapter.data.attributes.chapter_note
+      .split(/#+\s*[Additional|Subheading]+ Note[s]*\s*#+/i)
+      .map do |s|
+        s.delete('\\')
+        .gsub("\r\n\r\n", "\r\n")
+        .strip
+      end
 
-    if additional_notes
+    if additional_notes || notes.length > 3700
       opts = {
         kerning: true,
         inline_format: true,
@@ -239,7 +238,7 @@ class ExportChapterPdf
       }
 
       column_box([0, cursor], columns: 3, width: bounds.width, height: (@printable_height - @footer_height - (@printable_height - cursor) + 20), spacer: (@base_table_font_size * 3)) do
-        text("<b><font size='#{@base_table_font_size * 1.5}'>Chapter #{@chapter[:goods_nomenclature_item_id][0..1].gsub(/^0/, '')}\n#{@chapter[:formatted_description]}</font></b>", opts)
+        text("<b><font size='#{@base_table_font_size * 1.5}'>Chapter #{chapter.data.attributes.goods_nomenclature_item_id[0..1].gsub(/^0/, '')}\n#{@chapter.data.attributes.formatted_description}</font></b>", opts)
         move_down(@base_table_font_size * 1.5)
 
         text('<b>Note</b>', opts.merge(size: 9))
@@ -251,7 +250,7 @@ class ExportChapterPdf
 
         text('<b>Additional Notes</b>', opts)
         move_down(@base_table_font_size / 2)
-        additional_notes.split(/\* /).each do |note|
+        additional_notes && additional_notes.split(/\* /).each do |note|
           text_indent(note, opts)
         end
 
@@ -273,9 +272,9 @@ class ExportChapterPdf
           padding_bottom: 0
         }
       }
-      column_x, column_2, column_3 = get_chapter_notes_columns(chapter[:chapter_note], opts, 'Note', @chapter_notes_font_size)
+      column_x, column_2, column_3 = get_chapter_notes_columns(chapter.data.attributes.chapter_note, opts, 'Note', @chapter_notes_font_size)
       column_1 = if column_x.empty? || (column_x[0] && column_x[0][0][:content].blank?)
-        format_text("<b><font size='#{@base_table_font_size * 1.5}'>Chapter #{@chapter[:goods_nomenclature_item_id][0..1].gsub(/^0/, '')}\n#{@chapter[:formatted_description]}</font></b>")
+        format_text("<b><font size='#{@base_table_font_size * 1.5}'>Chapter #{chapter.data.attributes.goods_nomenclature_item_id[0..1].gsub(/^0/, '')}\n#{chapter.data.attributes.formatted_description}</font></b>")
       else
         column_x
       end
@@ -296,77 +295,93 @@ class ExportChapterPdf
     end
   end
 
-  def update_footnotes(commodity)
-    commodity[:import_measures]
-      .map do |m|
-        m[:footnotes].map do |f|
-          if @footnotes[f[:code]]
-            @footnotes[f[:code]][:refs] << commodity[:goods_nomenclature_sid]
-          else
-            @footnotes[f[:code]] = {
-              text: f[:description],
-              refs: [commodity[:goods_nomenclature_sid]]
-            }
-            unless @footnotes_lookup[f[:code]]
-              @footnotes_lookup[f[:code]] = @footnotes_lookup.length + 1
-            end
-          end
+  def update_footnotes(v2_commodity)
+    measures = commodity_measures(v2_commodity)
+
+    footnote_ids = measures.map{|m| m.relationships.footnotes.data}.flatten.uniq.map(&:id)
+    footnotes = footnote_ids.map do |f|
+      v2_commodity.included.select{|obj| obj.id == f}
+    end.flatten
+
+    footnotes.each do |fn|
+      f = fn.attributes
+      next if f.code =~ /0[3,4]./
+      if @footnotes[f.code]
+        @footnotes[f.code][:refs] << @uktt.response.data.id
+      else
+        @footnotes[f.code] = {
+          text: "#{f.code}-#{f.description}",
+          refs: [@uktt.response.data.id]
+        }
+        unless @footnotes_lookup[f.code]
+          @footnotes_lookup[f.code] = @footnotes_lookup.length + 1
         end
       end
-    # commodity.import_measures_dataset
-    #          .map(&:footnotes)
-    #          .map{|f|
-    #            f.each{ |ff|
-    #             if @footnotes[ff.footnote_id]
-    #               @footnotes[ff.footnote_id][:refs] << commodity.goods_nomenclature_sid
-    #             else
-    #               @footnotes[ff.footnote_id] = {
-    #                 text: ff.description,
-    #                 refs: [ commodity.goods_nomenclature_sid ]
-    #               }
-    #               unless @footnotes_lookup[ff.footnote_id]
-    #                 @footnotes_lookup[ff.footnote_id] = @footnotes_lookup.length + 1
-    #               end
-    #             end
-    #            }
-    #          }
+    end
   end
 
-  def update_quotas(commodity, heading)
-    return if commodity[:import_measures].nil?
+  def update_quotas(v2_commodity, heading)
+    quotas = commodity_measures(v2_commodity).select{|m| measure_is_quota(m)}
+    quotas.each do |measure_quota|
+      order_number = measure_quota.relationships.order_number.data.id
+      if @quotas[order_number]
+        @quotas[order_number][:measures] << measure_quota
+        @quotas[order_number][:commodities] << v2_commodity.data.attributes.goods_nomenclature_item_id
+      else
+        duty = v2_commodity.included.select{|obj| measure_quota.relationships.duty_expression.data.id == obj.id}.first.attributes.base
+        definition_relation = v2_commodity.included.select{|obj| measure_quota.relationships.order_number.data.id == obj.id}.first.relationships.definition
+        return if definition_relation.data.nil?
+        definition = v2_commodity.included.select{|obj| definition_relation.data.id == obj.id}.first
+        footnotes_ids  = measure_quota.relationships.footnotes.data.map(&:id).select{|f| f[0..1] == 'CD'}
+        footnotes = v2_commodity.included.select{|obj| footnotes_ids.include?(obj.id)}
 
-    commodity[:import_measures]
-      .reject { |m| m[:order_number].nil? }
-      .each do |measure|
-        q = measure[:order_number]
-
-        if @quotas[q]
-          @quotas[q][:commodities] << commodity[:goods_nomenclature_item_id]
-          @quotas[q][:measures] << measure unless measure[:order_number] == @quotas[q][:measures][0][:order_number]
-        else
-          @quotas[q] = {
-            commodities: [commodity[:goods_nomenclature_item_id]],
-            measures: [measure],
-            descriptions: [[heading[:description], commodity[:description]]]
-          }
-        end
+        @quotas[order_number] = {
+          commodities: [v2_commodity.data.attributes.goods_nomenclature_item_id],
+          descriptions: [[heading.description, v2_commodity.data.attributes.description]],
+          measures: [measure_quota],
+          duties: [duty],
+          definitions: [definition],
+          footnotes: footnotes
+        }
       end
-    # quota_measures = commodity.import_measures_dataset
-    #           .reject{|m| m.quota_order_number.nil?}
-    #           .select(&:valid?)
-    # quota_measures.each do |measure|
-    #   q = measure.quota_order_number
-    #   if @quotas[q]
-    #     @quotas[q][:commodities] << commodity[:goods_nomenclature_item_id]
-    #     @quotas[q][:measures] << measure unless measure.ordernumber == @quotas[q][:measures][0].ordernumber
-    #   else
-    #     @quotas[q] = {
-    #       commodities: [ commodity[:goods_nomenclature_item_id] ],
-    #       measures: [ measure ]
-    #     }
-    #   end
-    # end
+    end
   end
+
+  #   ### V1
+  #   # commodity[:import_measures]
+  #   #   .reject { |m| m[:order_number].nil? }
+  #   #   .each do |measure|
+  #   #     q = measure[:order_number]
+
+  #   #     if @quotas[q]
+  #   #       @quotas[q][:commodities] << commodity.goods_nomenclature_item_id
+  #   #       @quotas[q][:measures] << measure unless measure[:order_number] == @quotas[q][:measures][0][:order_number]
+  #   #     else
+  #   #       @quotas[q] = {
+  #   #         commodities: [commodity.goods_nomenclature_item_id],
+  #   #         measures: [measure],
+  #   #         descriptions: [[heading[:description], commodity[:description]]]
+  #   #       }
+  #   #     end
+  #   #   end
+
+  #   ### DB
+  #   # quota_measures = commodity.import_measures_dataset
+  #   #           .reject{|m| m.quota_order_number.nil?}
+  #   #           .select(&:valid?)
+  #   # quota_measures.each do |measure|
+  #   #   q = measure.quota_order_number
+  #   #   if @quotas[q]
+  #   #     @quotas[q][:commodities] << commodity[:goods_nomenclature_item_id]
+  #   #     @quotas[q][:measures] << measure unless measure.ordernumber == @quotas[q][:measures][0].ordernumber
+  #   #   else
+  #   #     @quotas[q] = {
+  #   #       commodities: [ commodity[:goods_nomenclature_item_id] ],
+  #   #       measures: [ measure ]
+  #   #     }
+  #   #   end
+  #   # end
+  # end
 
   def commodities_table
     table commodity_table_data, column_widths: @cw do |t|
@@ -386,12 +401,13 @@ class ExportChapterPdf
 
   def commodity_table_data(chapter = @chapter)
     result = [] << header_row
+    heading_ids = chapter.data.relationships.headings.data.map(&:id)
+    heading_objs = chapter.included.select{|obj| heading_ids.include? obj.id}
+    heading_gniids = heading_objs.map{|h| h.attributes.goods_nomenclature_item_id}.uniq.sort
 
-    chapter[:headings] && chapter[:headings].each do |openstruct|
-      h = openstruct.to_h
-      heading = Uktt::Heading.new(@opts.merge(heading_id: h[:goods_nomenclature_item_id][0..3])).retrieve.to_h
-      heading = h.merge(heading)
-
+    heading_gniids.each do |heading_gniid|
+      v2_heading = Uktt::Heading.new(@opts.merge(heading_id: heading_gniid[0..3], version: 'v2')).retrieve
+      heading = v2_heading.data.attributes
       result << heading_row(heading)
 
       # You'd think this would work, but `page_number` is not updated
@@ -406,21 +422,36 @@ class ExportChapterPdf
 
       # Same with below, but when trying to get the value of `@current_heading`
       # in the `repeat` block, it always returns the last value, not the current
-      @current_heading = heading[:goods_nomenclature_item_id][2..3]
+      @current_heading = heading.goods_nomenclature_item_id[2..3]
 
-      heading[:commodities] && heading[:commodities].each do |os|
-        c = os.to_h
-        commodity = Uktt::Commodity.new(@opts.merge(commodity_id: c[:goods_nomenclature_item_id])).retrieve.to_h
-        commodity = c.merge(commodity)
 
-        update_footnotes(commodity) if commodity[:declarable]
+      if v2_heading.data.relationships.commodities
+        commodity_ids = v2_heading.data.relationships.commodities.data.map(&:id)
+        commodity_objs = v2_heading.included.select{|obj| commodity_ids.include? obj.id}
 
-        update_quotas(commodity, heading)
+        commodity_objs.each do |c|
+          if c.attributes.leaf
+            @uktt = Uktt::Commodity.new(@opts.merge(commodity_id: c.attributes.goods_nomenclature_item_id, version: 'v2'))
+            v2_commodity = @uktt.retrieve
 
-        result << commodity_row(commodity)
+            if v2_commodity.data
+              commodity = v2_commodity.data.attributes
+              
+              update_footnotes(v2_commodity) if commodity.declarable
+
+              update_quotas(v2_commodity, heading)
+
+              result << commodity_row(v2_commodity)
+              v2_commodity.data.attributes.description = c.attributes.description
+            else
+              result << commodity_row_subhead(c)
+            end
+          else
+            result << commodity_row_subhead(c)
+          end
+        end
       end
     end
-
     result
   end
 
@@ -450,32 +481,48 @@ class ExportChapterPdf
       '', '', '', '', '', '', ''
     ]
   end
-
-  def commodity_row(commodity)
+  
+  def commodity_row(v2_commodity)
+    commodity = v2_commodity.data.attributes
     [
-      formatted_heading_cell(commodity), # Column 1:  Heading numbers and descriptions
-      commodity_code_cell(commodity),             # Column 2A: Commodity code, 8 digits, center-align
-      additional_commodity_code_cell(commodity),  # Column 2B: Additional commodity code, 2 digits, center-align
-      specific_provisions(commodity),             # Column 3:  Specific provisions, left-align
-      units_of_quantity_list(commodity),          # Column 4:  Unit of quantity, numbered list, left-align
-      third_country_duty_expression(commodity),   # Column 5:  Full tariff rate, percentage, center align
-      preferential_tariffs(commodity),            # Column 6:  Preferential tariffs, left align
-      formatted_vat_rate_cell(commodity)          # Column 7:  VAT Rate: e.g., 'S', 'Z', etc., left align
+      formatted_heading_cell(commodity),            # Column 1:  Heading numbers and descriptions
+      commodity_code_cell(commodity),               # Column 2A: Commodity code, 8 digits, center-align
+      additional_commodity_code_cell(commodity),    # Column 2B: Additional commodity code, 2 digits, center-align
+      specific_provisions(v2_commodity),            # Column 3:  Specific provisions, left-align
+      units_of_quantity_list,                       # Column 4:  Unit of quantity, numbered list, left-align
+      third_country_duty_expression,                # Column 5:  Full tariff rate, percentage, center align
+      preferential_tariffs,                         # Column 6:  Preferential tariffs, left align
+      formatted_vat_rate_cell                       # Column 7:  VAT Rate: e.g., 'S', 'Z', etc., left align
+    ]
+  end
+
+  def commodity_row_subhead(c)
+    commodity = c.attributes
+    [
+      formatted_heading_cell(commodity),
+      commodity_code_cell(commodity),
+      additional_commodity_code_cell(commodity),
+      '',
+      '',
+      '',
+      '',
+      ''
     ]
   end
 
   def formatted_heading_cell(commodity)
-    indents = (('-' + Prawn::Text::NBSP) * (commodity[:number_indents] ? commodity[:number_indents] - 1 : 0)).to_s
+    indents = (('-' + Prawn::Text::NBSP) * (commodity.number_indents - 1)) # [(commodity.number_indents - 1), 1].max)
     opts = {
       width: @cw[0],
-      column_widths: { 0 => ((commodity[:number_indents] || 1) * 5.1) }
+      column_widths: { 0 => ((commodity.number_indents || 1) * 5.1) }
     }
 
     footnotes_array = []
     @footnotes.each_pair do |k, v|
-      footnotes_array << @footnotes_lookup[k] if v[:refs].include?(commodity[:goods_nomenclature_sid])
+      if @uktt.response.data && v[:refs].include?(@uktt.response.data.id) && k[0..1] != 'CD'
+        footnotes_array << @footnotes_lookup[k]
+      end
     end
-
     footnote_references = !footnotes_array.empty? ? " (#{footnotes_array.join(',')})" : ''
 
     # TODO: implement Commodity#from_harmonized_system? and Commodity#in_combined_nomenclature?
@@ -487,45 +534,42 @@ class ExportChapterPdf
     # else
     #   content = hanging_indent([indents, "#{commodity.description}#{footnote_references}"], opts)
     # end
-    description = commodity[:description].delete('|')
-    content = if commodity[:number_indents].to_i <= 1 || !commodity[:declarable]
-      format_text("<b>#{description}#{footnote_references}</b>")
-    elsif commodity[:declarable]
-      hanging_indent(["<i>#{indents}<i>", "<i>#{description}#{footnote_references}</i>"], opts)
+    description = commodity.description # .delete('|')
+    if commodity.number_indents.to_i <= 1 #|| !commodity.declarable
+      format_text("<b>#{description}</b>#{footnote_references}")
+    elsif commodity.declarable
+      hanging_indent(["<i>#{indents}<i>", "<i>#{description}</i>#{footnote_references}"], opts)
     else
       hanging_indent([indents, "#{description}#{footnote_references}"], opts)
     end
-    content
   end
 
   def commodity_code_cell(commodity)
-    return '' unless commodity[:declarable]
+    return '' unless commodity.declarable
 
-    format_text "#{commodity[:goods_nomenclature_item_id][0..5]}#{Prawn::Text::NBSP * 3}#{commodity[:goods_nomenclature_item_id][6..7]}"
+    format_text "#{commodity.goods_nomenclature_item_id[0..5]}#{Prawn::Text::NBSP * 3}#{commodity.goods_nomenclature_item_id[6..7]}"
   end
 
   def additional_commodity_code_cell(commodity)
-    return '' unless commodity[:declarable]
+    return '' unless commodity.declarable
 
-    format_text (commodity[:goods_nomenclature_item_id][8..9]).to_s
+    format_text (commodity.goods_nomenclature_item_id[8..9]).to_s
   end
 
-  def specific_provisions(commodity)
-    return '' unless commodity[:declarable]
+  def specific_provisions(v2_commodity)
+    return '' unless v2_commodity.data.attributes.declarable
 
-    commodity[:import_measures]
-      .reject { |m| m[:order_number].nil? }
-      .any? ? 'TQ' : ''
+    commodity_measures(v2_commodity).select{|m| measure_is_quota(m)}.length > 0 ? 'TQ' : ''
   end
 
-  def units_of_quantity_list(commodity)
-    return '' unless commodity[:import_measures]
+  def units_of_quantity_list
+    duties = @uktt.find('duty_expression').map{|d| d.attributes.base }
+    return '' if duties.empty?
 
     str = ''
     uoq = ['Kg']
-    uoq << 'Number' if commodity[:import_measures].detect do |import_measure|
-      import_measure[:duty_expression][:base] == 'p/st'
-    end
+    uoq << 'Number' if duties.include?('p/st')
+    uoq << 'Litre' if duties.include?('l')
 
     uoq.each_with_index do |q, i|
       str << "#{(i + 1).to_s + '.' if uoq.length > 1}#{q}\n"
@@ -534,91 +578,52 @@ class ExportChapterPdf
     str
   end
 
-  def third_country_duty_expression(commodity)
-    return '' unless commodity[:import_measures]
+  def third_country_duty_expression
+    measure = @uktt.find('measure').select{|m| m.relationships.measure_type.data.id == THIRD_COUNTRY }.first
+    return '' if measure.nil?
 
-    commodity[:import_measures].filter do |import_measure|
-      import_measure[:measure_type][:description] == 'Third country duty'
-    end
-                               .map do |import_measure|
-      clean_rates(import_measure[:duty_expression][:base])
-    end
-                               .join(' ') || ''
-
-    # return '' unless commodity[:declarable]
-    # commodity.import_measures_dataset.filter(measures__measure_type_id: MeasureType::THIRD_COUNTRY).map do |measure|
-    #   measure.duty_expression
-    #          .gsub('0.00 %', 'Free')
-    #          .gsub(' EUR ', ' € ')
-    #          .gsub(/(.[0-9]{1})0 /, '\1 ')
-    # end.join(' ') || ''
+    @uktt.find(measure.relationships.duty_expression.data.id).attributes.base
   end
 
-  def preferential_tariffs(commodity)
-    return '' unless commodity[:declarable]
-    return 'zero' if commodity[:import_measures].filter { |m| m[:measure_type][:id] == THIRD_COUNTRY }.map { |m| m[:duty_expression] }.first == '0.00 %'
-
-    preferential_tariffs_array = commodity[:import_measures].filter { |m| !!(m[:measure_type][:description] =~ /Tariff preference/) }
-                                                            .map do |m|
-      [
-        m[:duty_expression][:base],
-        m[:geographical_area][:id],
-        m[:geographical_area][:description]
-      ]
-    end
-                                                            .uniq
-    # preferential_tariffs_array = commodity[:measures]
-    #   .select do |m|
-    #     m.measure_type.tariff_preference?
-    #   end
-    #   .map do |m|
-    #     [
-    #       m.duty_expression_with_national_measurement_units_for(m).gsub('0.00 %', 'Free'),
-    #       m.geographical_area.geographical_area_id,
-    #       m.geographical_area.description,
-    #     ]
-    #   end
-    #   .uniq
-    return '' if preferential_tariffs_array.empty?
-
-    preferential_tariffs = {}
-    preferential_tariffs_array.each do |tariff|
-      recipient = tariff[1] =~ /[0-9]{1,}/ ? tariff[2] : tariff[1]
-      if preferential_tariffs[tariff[0]]
-        preferential_tariffs[tariff[0]] << recipient
-      else
-        preferential_tariffs[tariff[0]] = [recipient]
-      end
-    end
-
-    s = []
-    preferential_tariffs.each_pair do |k, v|
-      shortened = v.map do |recipient|
-        RECIPIENT_SHORTENER[recipient.to_sym] || recipient
-      end
-      s.push "#{shortened.join(', ')}-#{clean_rates(k)}"
-    end
-    s.join('; ')
-  end
-
-  def formatted_vat_rate_cell(commodity)
-    # content = commodity.import_measures_dataset
-    #                    .reject{ |m| !m.vat? }
-    #                    .map{ |m| m.measure_type_id.chars[2].upcase }
-    #                    .uniq
-    #                    .sort
-    #                    .join(' ')
-    # get VAT rates from import measures
-    content = commodity[:import_measures] ? commodity[:import_measures]
-      .select { |m| m[:vat] }
-      .map { |m| m[:measure_type][:id].chars[2].upcase }
-      .join(' ') : ''
-    {
-      content: content
+  def preferential_tariffs
+    preferential_tariffs = {
+      duties: {},
+      footnotes: {},
+      excluded: {},
     }
+    s = []
+    @uktt.find('measure').select{|m| m.relationships.measure_type.data.id == TARIFF_PREFERENCE }.each do |t|
+      g_id = t.relationships.geographical_area.data.id
+      geo = @uktt.response.included.select{|obj| obj.id == g_id}.map{|t| t.id =~ /[A-Z]{2}/ ? t.id : t.attributes.description}.join(', ')
+
+      d_id = t.relationships.duty_expression.data.id
+      duty = @uktt.response.included.select{|obj| obj.id == d_id}.map{|t| t.attributes.base}
+
+      f_ids = t.relationships.footnotes.data.map(&:id)
+      footnotes = @uktt.response.included.select{|obj| f_ids.include? obj.id}.flatten
+
+      x_ids = t.relationships.excluded_countries.data.map(&:id)
+      excluded = @uktt.response.included.select{|obj| x_ids.include? obj.id}
+
+      footnotes_string = footnotes.map(&:id).map{|fid| " (#{@footnotes_lookup[fid]})"}.join(' ')
+      excluded_string = excluded.map(&:id).map{|xid| " (Excluding #{xid})"}.join(' ')
+      duty_string = duty.join.gsub('0.00 %', 'Free')
+      s << "#{geo}#{excluded_string}-#{duty_string}#{footnotes_string}"
+    end
+    s.sort.join('; ')
+  end
+
+  def formatted_vat_rate_cell
+    @uktt.find('measure_type')
+         .map(&:id)
+         .select{|id| id[0..1] == 'VT'}
+         .map{|m| m.chars[2].upcase}
+         .join(' ')
   end
 
   def footnotes
+    return if @footnotes.size == 0
+
     cell_style = {
       padding: 0,
       borders: []
@@ -658,18 +663,29 @@ class ExportChapterPdf
       cell_style: cell_style
     }
     quotas_array = quota_header_row
+    
+    @quotas.each do |measure_id, quota|
+      # measure = data[:measures] ? data[:measures][0] : nil
+      # quotas_array << [
+      #   quota_commodities(data[:commodities]),  # Commodity </font>, list of codes, 1 per line, with comma
+      #   quota_description(data[:descriptions]), # Description
+      #   quota_geo_description(measure),         # Country of origin, e.g. GATT, NCC, others, Israel, etc.
+      #   quota_order_no(measure),                # Tariff Quota Order No.
+      #   quota_rate(measure),                    # Quota rate
+      #   quota_period(quota_order),              # Quota period, date range
+      #   quota_units(quota_order),               # Quota units, e.g., pieces, kg, number
+      #   quota_docs(measure)                     # Documentary evidence required
+      # ]
 
-    @quotas.each do |quota_order, data|
-      measure = data[:measures] ? data[:measures][0] : nil
       quotas_array << [
-        quota_commodities(data[:commodities]),  # Commodity </font>, list of codes, 1 per line, with comma
-        quota_description(data[:descriptions]), # Description
-        quota_geo_description(measure),         # Country of origin, e.g. GATT, NCC, others, Israel, etc.
-        quota_order_no(quota_order),            # Tariff Quota Order No.
-        quota_rate(measure),                    # Quota rate
-        quota_period(quota_order),              # Quota period, date range
-        quota_units(quota_order),               # Quota units, e.g., pieces, kg, number
-        quota_docs(measure)                     # Documentary evidence required
+        quota_commodities(quota[:commodities]),
+        quota_description(quota[:descriptions]),
+        quota_geo_description(quota[:measures]),
+        measure_id,
+        quota_rate(quota[:duties]),
+        quota_period(quota[:measures]),
+        quota_units(quota[:definitions]),
+        quota_docs(quota[:footnotes])
       ]
     end
 
@@ -678,7 +694,7 @@ class ExportChapterPdf
       start_new_page
 
       font_size(19) do
-        text "Chapter #{chapter[:goods_nomenclature_item_id][0..1].gsub(/^0/, '')}#{Prawn::Text::NBSP * 4}<b>Additional Information</b>",
+        text "Chapter #{chapter.data.attributes.goods_nomenclature_item_id[0..1].gsub(/^0/, '')}#{Prawn::Text::NBSP * 4}<b>Additional Information</b>",
              inline_format: true
       end
 
@@ -734,66 +750,58 @@ class ExportChapterPdf
   end
 
   def quota_description(descriptions)
-    descriptions.first.join(' - ')
+    # descriptions.flatten.join(' - ')
+    descriptions.flatten[1]
   end
 
-  def quota_geo_description(measure)
-    measure[:geographical_area][:description]
+  def quota_geo_description(measures)
+    # @uktt.response.included.select{|obj| obj.id == measure.relationships.geographical_area.data.id}.first.attributes.description
+    measures.map do |measure|
+      measure.relationships.geographical_area.data.id
+    end.uniq.join(', ')
   end
 
-  def quota_order_no(quota_order)
-    quota_order[:number]
-  end
-
-  def quota_rate(measure)
-    return '' if measure.nil?
-
-    clean_rates(measure[:duty_expression][:base].to_s)
-  end
-
-  def quota_period(quota_order)
-    qo = quota_order[:definition]
-    return '' if qo.nil?
-    return DateTime.parse(qo[:validity_start_date]).strftime('%-d.%-m').to_s if qo[:validity_end_date].nil?
-
-    "#{DateTime.parse(qo[:validity_start_date]).strftime('%-d.%-m')}-#{DateTime.parse(qo[:validity_end_date]).strftime('%-d.%-m')}"
-  end
-
-  def quota_units(quota_order)
-    return '' if quota_order[:definition].nil?
-
-    q = quota_order[:definition][:measurement_unit]
-    return '' if q.nil?
-
-    UNIT_ABBREVIATIONS.key?(q.to_sym) ? UNIT_ABBREVIATIONS[q.to_sym] : q
-  end
-
-  def quota_docs(measure)
-    return '' if measure.nil?
-
-    measure[:footnotes]
-      .select { |f| f[:footnote_type_id] == 'CD' } # get "conditions" type of footnotes only
-      .flatten
-      .uniq
-      .map { |f| f[:description] }
-      .join("\n")
-  end
-
-  # def quota_geo_description(quota_order)
-  #   begin
-  #     id = quota_order.quota_order_number_origin.geographical_area_id
-  #     GeographicalArea.find(geographical_area_id: id.to_s).description
-  #   rescue => exception
-  #     puts exception.inspect
-  #     return ''
-  #   end
+  # def quota_order_no(measure)
+  #   return measure.id if measure.relationships.order_number.data.nil?
+  #   measure.relationships.order_number.data.id
   # end
 
-  # def quota_period(quota)
-  #   return "foo" if quota[:validity_start_date].nil?
-  #   return "#{quota[:validity_start_date].strftime('%-d.%-m')}" if quota[:validity_end_date].nil?
-  #   "#{quota[:validity_start_date].strftime('%-d.%-m')}-#{quota[:validity_end_date].strftime('%-d.%-m')}"
-  # end
+  def quota_rate(duties)
+    duties.uniq.join(', ')
+  end
+
+  def quota_period(measures)
+    measures.map do |m|
+      "#{DateTime.parse(m.attributes.effective_start_date).strftime('%-d.%-m')}-#{DateTime.parse(m.attributes.effective_end_date).strftime('%-d.%-m')}"
+    end.uniq.join(', ')
+  end
+
+  def quota_units(definitions)
+    definitions.map do |d|
+      d.attributes.measurement_unit
+    end.uniq.join(', ')
+  end
+
+  def quota_docs(footnotes)
+    return '' if footnotes.empty?
+    footnotes.map do |f|
+      f.attributes.description
+    end.uniq.join(', ')
+
+    # V1
+    # return '' if measure.nil?
+    # measure.relationships.footnotes.data.map{|f| f.id}.map do |f_id|
+    #   @uktt.response.included.select{|obj| obj.id == f_id}.map{|f| f.attributes.description}
+    # end.flatten.join('\n')
+
+    # DB
+    # measure[:footnotes]
+    #   .select { |f| f[:footnote_type_id] == 'CD' } # get "conditions" type of footnotes only
+    #   .flatten
+    #   .uniq
+    #   .map { |f| f[:description] }
+    #   .join("\n")
+  end
 
   def get_chapter_notes_columns(content, opts, header_text = 'Note', _font_size = 9)
     get_notes_columns(content, opts, header_text, 9, 2)
@@ -821,7 +829,7 @@ class ExportChapterPdf
     notes_str = content.delete('\\')
     notes = notes_str_to_note_array(notes_str)
 
-    title = "<b><font size='#{@base_table_font_size * 1.5}'>Chapter #{@chapter[:goods_nomenclature_item_id][0..1].gsub(/^0/, '')}\n#{@chapter[:formatted_description]}</font></b>\n\n"
+    title = "<b><font size='#{@base_table_font_size * 1.5}'>Chapter #{@chapter.data.attributes.goods_nomenclature_item_id[0..1].gsub(/^0/, '')}\n#{@chapter[:formatted_description]}</font></b>\n\n"
     notes.each_with_index do |note, i|
       header = i.zero? ? "#{fill_columns == 3 ? title : nil}<b><font size='#{font_size}'>#{header_text}</font></b>" : nil
       new_note = [
@@ -898,6 +906,24 @@ class ExportChapterPdf
        .gsub(' EUR ', ' € ')
        .gsub(/(\.[0-9]{1})0 /, '\1 ')
        .gsub(/([0-9]{1})\.0 /, '\1 ')
+  end
+
+  def commodity_measures(commodity)
+    ids = commodity.data.relationships.import_measures.data.map(&:id) + commodity.data.relationships.export_measures.data.map(&:id)
+
+    commodity.included.select{|obj| ids.include? obj.id}
+  end
+
+  def measure_is_quota(measure)
+    !measure.relationships.order_number.data.nil?
+  end
+
+  def measure_footnotes(measure)
+    measure.relationships.footnotes.data.map
+  end
+
+  def measure_duty_expression(measure)
+    measure.relationships.duty_expression.data
   end
 
   UNIT_ABBREVIATIONS = {
