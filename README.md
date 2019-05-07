@@ -44,7 +44,7 @@ Set options upon instantiation, and change them on the instance by passing-in a 
 # or, set `section_id` with accessor. Only `*_id` options have accessors.
 
 > s = Uktt::Section.new
-> s.heading_id = '1'
+> s.section_id = '1'
 
 # => #<Uktt::Section @section_id="1", @config={:host=>"http://localhost:3002", :version=>"v1", :debug=>false, :return_json=>false}>
 
