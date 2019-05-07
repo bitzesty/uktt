@@ -113,7 +113,8 @@ module Uktt
                              banner: '`pwd`'
     def pdf(chapter_id)
       puts "Making a PDF for Chapter #{chapter_id}"
-      puts "Finished #{Uktt::Pdf.new(chapter_id: chapter_id).make_chapter}"
+      start_time = Time.now
+      puts "Finished #{Uktt::Pdf.new(options.merge(chapter_id: chapter_id)).make_chapter} in #{Time.now - start_time}"
     end
 
     desc 'test', 'Runs API specs'
