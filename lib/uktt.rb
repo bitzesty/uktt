@@ -12,8 +12,8 @@ require 'yaml'
 require 'psych'
 
 module Uktt
-  API_HOST_PROD =       'https://www.trade-tariff.service.gov.uk'.freeze
-  API_HOST_LOCAL =      'http://localhost:3002'.freeze
+  API_HOST_PROD =       'https://www.trade-tariff.service.gov.uk/api'.freeze
+  API_HOST_LOCAL =      'http://localhost:3002/api'.freeze
   API_VERSION =         'v1'.freeze
   SECTION =             'sections'.freeze
   CHAPTER =             'chapters'.freeze
