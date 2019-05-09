@@ -9,17 +9,6 @@ class ExportChapterPdf
   TARIFF_PREFERENCE = '142'.freeze
 
   def initialize(opts = {})
-    # @host = host
-    # @version = version
-    # @chapter_id = chapter_id
-    # @return_json = false # force to FALSE, `ExportChapterPdf` uses Openstruct/ruby hash
-    # @debug = debug
-    # @opts = {
-    #   return_json: false, 
-    #   host: host, 
-    #   version: version, 
-    #   debug: debug
-    # }
     @opts = opts
     @chapter_id = opts[:chapter_id]
 
@@ -222,13 +211,16 @@ class ExportChapterPdf
   end
 
   def chapter_info(chapter = @chapter)
-    notes, additional_notes, *everything_else = chapter.data.attributes.chapter_note
+    chapter_note = chapter.data.attributes.chapter_note || ''
+    notes, additional_notes, *everything_else = chapter_note
       .split(/#+\s*[Additional|Subheading]+ Note[s]*\s*#+/i)
       .map do |s|
         s.delete('\\')
         .gsub("\r\n\r\n", "\r\n")
         .strip
       end
+
+    notes ||= ''
 
     if additional_notes || notes.length > 3700
       opts = {
@@ -346,42 +338,6 @@ class ExportChapterPdf
       end
     end
   end
-
-  #   ### V1
-  #   # commodity[:import_measures]
-  #   #   .reject { |m| m[:order_number].nil? }
-  #   #   .each do |measure|
-  #   #     q = measure[:order_number]
-
-  #   #     if @quotas[q]
-  #   #       @quotas[q][:commodities] << commodity.goods_nomenclature_item_id
-  #   #       @quotas[q][:measures] << measure unless measure[:order_number] == @quotas[q][:measures][0][:order_number]
-  #   #     else
-  #   #       @quotas[q] = {
-  #   #         commodities: [commodity.goods_nomenclature_item_id],
-  #   #         measures: [measure],
-  #   #         descriptions: [[heading[:description], commodity[:description]]]
-  #   #       }
-  #   #     end
-  #   #   end
-
-  #   ### DB
-  #   # quota_measures = commodity.import_measures_dataset
-  #   #           .reject{|m| m.quota_order_number.nil?}
-  #   #           .select(&:valid?)
-  #   # quota_measures.each do |measure|
-  #   #   q = measure.quota_order_number
-  #   #   if @quotas[q]
-  #   #     @quotas[q][:commodities] << commodity[:goods_nomenclature_item_id]
-  #   #     @quotas[q][:measures] << measure unless measure.ordernumber == @quotas[q][:measures][0].ordernumber
-  #   #   else
-  #   #     @quotas[q] = {
-  #   #       commodities: [ commodity[:goods_nomenclature_item_id] ],
-  #   #       measures: [ measure ]
-  #   #     }
-  #   #   end
-  #   # end
-  # end
 
   def commodities_table
     table commodity_table_data, column_widths: @cw do |t|
@@ -761,18 +717,15 @@ class ExportChapterPdf
     end.uniq.join(', ')
   end
 
-  # def quota_order_no(measure)
-  #   return measure.id if measure.relationships.order_number.data.nil?
-  #   measure.relationships.order_number.data.id
-  # end
-
   def quota_rate(duties)
     duties.uniq.join(', ')
   end
 
   def quota_period(measures)
     measures.map do |m|
-      "#{DateTime.parse(m.attributes.effective_start_date).strftime('%-d.%-m')}-#{DateTime.parse(m.attributes.effective_end_date).strftime('%-d.%-m')}"
+      start = m.attributes.effective_start_date ? DateTime.parse(m.attributes.effective_start_date).strftime('%-d.%-m') : ''
+      ending = m.attributes.effective_end_date ? DateTime.parse(m.attributes.effective_end_date).strftime('%-d.%-m') : ''
+      "#{start}-#{ending}"
     end.uniq.join(', ')
   end
 
@@ -787,20 +740,6 @@ class ExportChapterPdf
     footnotes.map do |f|
       f.attributes.description
     end.uniq.join(', ')
-
-    # V1
-    # return '' if measure.nil?
-    # measure.relationships.footnotes.data.map{|f| f.id}.map do |f_id|
-    #   @uktt.response.included.select{|obj| obj.id == f_id}.map{|f| f.attributes.description}
-    # end.flatten.join('\n')
-
-    # DB
-    # measure[:footnotes]
-    #   .select { |f| f[:footnote_type_id] == 'CD' } # get "conditions" type of footnotes only
-    #   .flatten
-    #   .uniq
-    #   .map { |f| f[:description] }
-    #   .join("\n")
   end
 
   def get_chapter_notes_columns(content, opts, header_text = 'Note', _font_size = 9)
