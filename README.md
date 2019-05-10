@@ -77,7 +77,7 @@ e.g.: `uktt.yaml`:
 ```
 
 
-Load from options from file:
+Load options from file:
 
 ```ruby
 > Uktt.configure_with('./uktt.yaml') #  relative to this gem's root
