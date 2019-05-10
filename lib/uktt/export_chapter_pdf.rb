@@ -222,7 +222,7 @@ class ExportChapterPdf
 
     notes ||= ''
 
-    if additional_notes || notes.length > 3700
+    if additional_notes || notes.length > 3200
       opts = {
         kerning: true,
         inline_format: true,
