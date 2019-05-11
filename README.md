@@ -11,14 +11,14 @@ Uktt provides a way to work with the UK Trade Tariff API, https://api.trade-tari
 
 ## Installation
 
-The repository is here: __https://gitlab.bitzesty.com/christopher.unger/uktt__
+The repository is here: __https://github.com/mcumcu/uktt__
 
-The [project](https://gitlab.bitzesty.com/christopher.unger/uktt) is on BitZesty gitlab, and access is set to "internal", so that it can be cloned by any logged in BitZesty user.
+<!-- The [project](https://gitlab.bitzesty.com/christopher.unger/uktt) is on BitZesty gitlab, and access is set to "internal", so that it can be cloned by any logged in BitZesty user. -->
 
-Or add to Gemfile:
+Add to your Gemfile:
 
 ```ruby
-gem 'uktt', git: 'https://gitlab.bitzesty.com/christopher.unger/uktt'
+gem 'uktt'
 ```
 
 ## Usage
@@ -53,7 +53,7 @@ Set options upon instantiation, and change them on the instance by passing-in a 
 
 # => #<Uktt::Section @section_id="2", @config={:host=>"http://localhost:3002", :version=>"v2", :debug=>false, :return_json=>true}>
 
-# NOTE: `section_id` has accessors. Other objects have *_id accessors.
+# NOTE: `Uktt::Section` has accessors. Other objects also have *_id accessors.
 
 > s.section_id
 
@@ -65,10 +65,10 @@ Set options upon instantiation, and change them on the instance by passing-in a 
 
 ```
 
-Options may also be loaded from a YAML configuration file:
+Options may be loaded from a YAML configuration file:
 
-e.g.: `uktt.yaml`:
-```ruby
+```yaml
+# uktt.yaml
 ---
   host: http://foo.bar:999
   version: v2
@@ -80,7 +80,7 @@ e.g.: `uktt.yaml`:
 Load options from file:
 
 ```ruby
-> Uktt.configure_with('./uktt.yaml') #  relative to this gem's root
+> Uktt.configure_with('./uktt.yaml')
 
 # => {"host"=>"http://foo.bar:999", "version"=>"v2", "debug"=>false, "return_json"=>false}
 ```
@@ -181,7 +181,7 @@ $ HOST=https://localhost:3002 VER=v2 rake spec
 
 The Uktt gem can produce PDF files for individual chapters of the Tariff.
 
-Set `chapter_id` and optional `:filepath` with a hash.
+Set `chapter_id` and optional `filepath` with a hash.
 
 ```ruby
 > p = Uktt::Pdf.new
@@ -194,6 +194,8 @@ Set `chapter_id` and optional `:filepath` with a hash.
 This gem provides a command-line interface (CLI).
 
 ```bash
+$ uktt
+
 Commands:
   uktt chapter                  # Retrieves a chapter
   uktt chapters                 # Retrieves all chapters
@@ -218,12 +220,12 @@ Options:
   -c, --changes, [--changes=CHANGES]                    # Retrieve changes for this object
 ```
 
-Here are some examples:
+Here are some examples of the CLI:
 
 ```bash
 # basic usage
-$ uktt sections                 # all sections
-$ uktt section 1                # one section
+$ uktt sections                 # get all sections
+$ uktt section 1                # get one section
 $ uktt section 1 -j             # get JSON
 $ uktt section 1 -jp            # get JSON, from prod.
 $ uktt section 1 -jp -a v2      # get JSON, from prod., use `v2`
@@ -236,12 +238,13 @@ $ uktt commodity 0101210000
 
 # make a PDF
 $ uktt pdf 01                   # specify a chapter_id
-$ uktt pdf 'test'               # use 'test' for PDF smoketest
+$ uktt pdf 'test'               # use the magic filename 'test' for a PDF smoketest
+                                # which _doesn't_ hit the API
 
-# goods nomenclatures require `v2`
-$ uktt heading 0101 -g -a v2 
+# 'goods nomenclatures' resources are only availab=le on `v2` of the API
+$ uktt heading 0101 -g -a v2
 $ uktt chapter 01 -g -a v2 
-$ uktt section 1 -g -a v2
+$ uktt section 1 --goods --api-version v2 # using long format options
 ```
 
 ## Development
@@ -252,11 +255,15 @@ While developing the gem, and for use outside of a Rails app, I found it useful 
 $ bundle console
 ```
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` (or `bundle console` outside of a rails app) for an interactive prompt that will allow you to experiment.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitLab at https://gitlab.bitzesty.com/christopher.unger/uktt. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitLab at https://github.com/mcumcu/uktt/issues.
+
+PRs can be submitted here https://github.com/mcumcu/uktt/pulls.
+
+This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 
@@ -264,4 +271,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the Uktt project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/uktt/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the `uktt` project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/uktt/blob/master/CODE_OF_CONDUCT.md).
