@@ -722,10 +722,11 @@ class ExportChapterPdf
   end
 
   def quota_period(measures)
+    formatted_date = '%d/%m/%Y'
     measures.map do |m|
-      start = m.attributes.effective_start_date ? DateTime.parse(m.attributes.effective_start_date).strftime('%-d.%-m') : ''
-      ending = m.attributes.effective_end_date ? DateTime.parse(m.attributes.effective_end_date).strftime('%-d.%-m') : ''
-      "#{start}-#{ending}"
+      start = m.attributes.effective_start_date ? DateTime.parse(m.attributes.effective_start_date).strftime(formatted_date) : ''
+      ending = m.attributes.effective_end_date ? DateTime.parse(m.attributes.effective_end_date).strftime(formatted_date) : ''
+      "#{start} - #{ending}"
     end.uniq.join(', ')
   end
 
