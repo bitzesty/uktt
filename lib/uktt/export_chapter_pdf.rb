@@ -585,7 +585,7 @@ class ExportChapterPdf
       borders: []
     }
     table_opts = {
-      column_widths: [@indent_amount],
+      column_widths: [25],
       width: @printable_width,
       cell_style: cell_style
     }
