@@ -29,8 +29,8 @@ module Uktt
 
     def make_cover
       pdf = ExportCoverPdf.new
-      pdf.save_as("cover.pdf")
-      "cover.pdf"
+      pdf.save_as(@filepath)
+      @filepath
     end
   end
 end
