@@ -490,7 +490,7 @@ class ExportChapterPdf
     # else
     #   content = hanging_indent([indents, "#{commodity.description}#{footnote_references}"], opts)
     # end
-    description = commodity.description # .delete('|')
+    description = render_special_characters(commodity.description)
     if commodity.number_indents.to_i <= 1 #|| !commodity.declarable
       format_text("<b>#{description}</b>#{footnote_references}")
     elsif commodity.declarable
@@ -498,6 +498,11 @@ class ExportChapterPdf
     else
       hanging_indent([indents, "#{description}#{footnote_references}"], opts)
     end
+  end
+
+  def render_special_characters(string)
+    string.gsub( /@([2-9])/, '<sub>\1 </sub>' )
+          .gsub( /\|/, Prawn::Text::NBSP )
   end
 
   def commodity_code_cell(commodity)
