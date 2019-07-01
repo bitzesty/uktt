@@ -364,7 +364,8 @@ class ExportChapterPdf
     heading_gniids.each do |heading_gniid|
       v2_heading = Uktt::Heading.new(@opts.merge(heading_id: heading_gniid[0..3], version: 'v2')).retrieve
       heading = v2_heading.data.attributes
-      result << heading_row(heading)
+      result << heading_row_head(v2_heading)
+      result << heading_row_title(v2_heading)
 
       # You'd think this would work, but `page_number` is not updated
       # because we're not inside the `repeat` block
@@ -379,7 +380,6 @@ class ExportChapterPdf
       # Same with below, but when trying to get the value of `@current_heading`
       # in the `repeat` block, it always returns the last value, not the current
       @current_heading = heading.goods_nomenclature_item_id[2..3]
-
 
       if v2_heading.data.relationships.commodities
         commodity_ids = v2_heading.data.relationships.commodities.data.map(&:id)
@@ -415,7 +415,8 @@ class ExportChapterPdf
     %w[1 2A 2B 3 4 5 6 7]
   end
 
-  def heading_row(heading)
+  def heading_row_head(v2_heading)
+    heading = v2_heading.data.attributes
     head = {
       content: "<b><font name='CabinCondensed'>#{heading[:goods_nomenclature_item_id][0..1]} #{heading[:goods_nomenclature_item_id][2..3]}</font></b>",
       kerning: true,
@@ -424,6 +425,19 @@ class ExportChapterPdf
       padding_bottom: 0,
       inline_format: true
     }
+    [head, '', '', '', '', '', '', '']
+  end
+
+  def heading_row_title(v2_heading)
+    heading = v2_heading.data.attributes
+    # head = {
+    #   content: "<b><font name='CabinCondensed'>#{heading[:goods_nomenclature_item_id][0..1]} #{heading[:goods_nomenclature_item_id][2..3]}</font></b>",
+    #   kerning: true,
+    #   size: 12,
+    #   borders: [],
+    #   padding_bottom: 0,
+    #   inline_format: true
+    # }
     title = {
       content: "<b><font name='CabinCondensed'>#{heading[:description].upcase}</font><b>",
       kerning: true,
@@ -432,10 +446,20 @@ class ExportChapterPdf
       borders: [],
       inline_format: true
     }
-    [
-      [[head], [title]],
-      '', '', '', '', '', '', ''
-    ]
+    if heading.declarable
+      heading_data = [
+        commodity_code_cell(heading),               # Column 2A: Commodity code, 8 digits, center-align
+        additional_commodity_code_cell(heading),    # Column 2B: Additional commodity code, 2 digits, center-align
+        specific_provisions(v2_heading),            # Column 3:  Specific provisions, left-align
+        units_of_quantity_list,                       # Column 4:  Unit of quantity, numbered list, left-align
+        third_country_duty_expression,                # Column 5:  Full tariff rate, percentage, center align
+        preferential_tariffs,                         # Column 6:  Preferential tariffs, left align
+        formatted_vat_rate_cell                       # Column 7:  VAT Rate: e.g., 'S', 'Z', etc., left align
+      ]
+    else
+      heading_data = ['', '', '', '', '', '', '']
+    end
+    [[[title]]] + heading_data
   end
   
   def commodity_row(v2_commodity)
