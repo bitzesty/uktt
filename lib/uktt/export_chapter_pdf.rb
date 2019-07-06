@@ -1,5 +1,6 @@
 require 'prawn'
 require 'prawn/table'
+require 'nokogiri'
 
 # A class to produce a PDF for a single chapter
 class ExportChapterPdf
@@ -177,9 +178,17 @@ class ExportChapterPdf
   end
 
   def text_indent(note, opts)
-    indent(indents(note)) do
-      pad_top(@top_pad) do
-        text("<b>#{note.strip}</b>", opts)
+    if /<table>.*/.match?(note)
+      indent(12) do
+        pad(@base_table_font_size) do
+          render_html_table(note)
+        end
+      end
+    else
+      indent(indents(note)) do
+        pad_top(@top_pad) do
+          text("<b>#{note.strip}</b>", opts)
+        end
       end
     end
   end
@@ -284,6 +293,31 @@ class ExportChapterPdf
         t.column(0).padding_right = 12
         t.row(0).padding_top = 0
       end
+    end
+  end
+
+  def html_table_data(html)
+    noko = Nokogiri::HTML(html)
+    head = noko.at('th').content
+    data = noko.css('tr').map do |tr|
+      tr.css('td').map(&:content)
+    end
+    max_col_count = data.map(&:length).max
+    data_normalized = data.reject do |row|
+      row.length != max_col_count
+    end
+    data_normalized.unshift([{content: head, colspan: max_col_count}])
+  end
+
+  def render_html_table(html)
+    html_string = "<table>#{html.gsub("\r\n", '')}</table>"
+    table(html_table_data(html_string), cell_style: {
+      padding: 2, 
+      size: 5.5, 
+      border_widths: [0.1, 0.1], 
+      name: "CabinCondensed"
+    } ) do |t|
+      t.width = @printable_width / 3
     end
   end
 
