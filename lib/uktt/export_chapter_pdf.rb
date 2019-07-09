@@ -319,7 +319,7 @@ class ExportChapterPdf
       border_widths: [0.1, 0.1], 
       name: "CabinCondensed"
     } ) do |t|
-      t.width = (@printable_width / 3
+      t.width = @printable_width / 3
     end
   end
 
