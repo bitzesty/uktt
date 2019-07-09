@@ -179,7 +179,7 @@ class ExportChapterPdf
 
   def text_indent(note, opts)
     if /<table>.*/.match?(note)
-      indent(12) do
+      indent(0) do
         pad(@base_table_font_size) do
           render_html_table(note)
         end
@@ -298,7 +298,7 @@ class ExportChapterPdf
 
   def html_table_data(html)
     noko = Nokogiri::HTML(html)
-    head = noko.at('th').content
+    head = noko.at('th') ? noko.at('th').content : nil
     data = noko.css('tr').map do |tr|
       tr.css('td').map(&:content)
     end
@@ -306,7 +306,9 @@ class ExportChapterPdf
     data_normalized = data.reject do |row|
       row.length != max_col_count
     end
-    data_normalized.unshift([{content: head, colspan: max_col_count}])
+    return data_normalized.unshift([{content: head, colspan: max_col_count}]) if head
+
+    data_normalized
   end
 
   def render_html_table(html)
@@ -317,7 +319,7 @@ class ExportChapterPdf
       border_widths: [0.1, 0.1], 
       name: "CabinCondensed"
     } ) do |t|
-      t.width = @printable_width / 3
+      t.width = (@printable_width / 3
     end
   end
 
