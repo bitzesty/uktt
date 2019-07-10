@@ -326,8 +326,9 @@ class ExportChapterPdf
   def update_footnotes(v2_commodity)
     measures = commodity_measures(v2_commodity)
 
-    footnote_ids = measures.map{|m| m.relationships.footnotes.data}.flatten.uniq.map(&:id)
-    footnotes = footnote_ids.map do |f|
+    measure_footnote_ids = measures.map{|m| m.relationships.footnotes.data}.flatten.uniq.map(&:id)
+    commodity_footnote_ids = v2_commodity.data.relationships.footnotes.data.flatten.uniq.map(&:id)
+    footnotes = (commodity_footnote_ids + measure_footnote_ids).map do |f|
       v2_commodity.included.select{|obj| obj.id == f}
     end.flatten
 
