@@ -1,4 +1,5 @@
 require 'uktt/export_chapter_pdf'
+require 'uktt/export_cover_pdf'
 
 module Uktt
   # An object for producing PDF files of individual chapters in the Tariff
@@ -7,7 +8,7 @@ module Uktt
 
     def initialize(opts = {})
       @chapter_id = opts[:chapter_id] || nil
-      @filepath = opts[:filepath] || "#{Dir.pwd}/#{@chapter_id}.pdf"
+      @filepath = opts[:filepath] || "#{Dir.pwd}/#{@chapter_id || 'cover'}.pdf"
       Uktt.configure(opts)
       @config = Uktt.config
     end
@@ -24,6 +25,12 @@ module Uktt
       @chapter_id = merged_opts[:chapter_id] || @chapter_id
       @filepath = merged_opts[:filepath] || @filepath
       @config = Uktt.config
+    end
+
+    def make_cover
+      pdf = ExportCoverPdf.new
+      pdf.save_as(@filepath)
+      @filepath
     end
   end
 end
