@@ -129,11 +129,12 @@ class ExportChapterPdf
     footer_data_array
   end
 
-  def format_text(text_in)
+  def format_text(text_in, leading = 0)
     {
       content: text_in,
       kerning: true,
-      inline_format: true
+      inline_format: true,
+      leading: leading
     }
   end
 
@@ -162,12 +163,14 @@ class ExportChapterPdf
     @this_indent
   end
 
-  def hanging_indent(array, opts = {}, header = nil)
+  def hanging_indent(array, opts = {}, header = nil, leading = 0)
     t = !header.nil? ? [[{ content: header, kerning: true, inline_format: true, colspan: 2, padding_bottom: 0 }, nil]] : []
     make_table(
       t << [
-        format_text(array[0]),
-        format_text(array[1])
+        # has_footnote ? format_footnoted_text(array[0]) : format_text(array[0]),
+        format_text(array[0], leading),
+        # has_footnote ? format_footnoted_text(array[1]) : format_text(array[1]),
+        format_text(array[1], leading)
       ],
       opts
     ) do |t|
@@ -540,7 +543,14 @@ class ExportChapterPdf
         footnotes_array << @footnotes_lookup[k]
       end
     end
-    footnote_references = !footnotes_array.empty? ? " (#{footnotes_array.join(',')})" : ''
+
+    if footnotes_array.empty?
+      footnote_references = ""
+      leading = 0
+    else
+      footnote_references = " [#{footnotes_array.join(',')}]"
+      leading = 6
+    end
 
     # TODO: implement Commodity#from_harmonized_system? and Commodity#in_combined_nomenclature?
     # i.e.: (see below)
@@ -553,11 +563,11 @@ class ExportChapterPdf
     # end
     description = render_special_characters(commodity.description)
     if commodity.number_indents.to_i <= 1 #|| !commodity.declarable
-      format_text("<b>#{description}</b>#{footnote_references}")
+      format_text("<b>#{description}</b><font size='12'><sup><#{footnote_references}</sup></font>", leading)
     elsif commodity.declarable
-      hanging_indent(["<i>#{indents}<i>", "<i>#{description}</i>#{footnote_references}"], opts)
+      hanging_indent(["<i>#{indents}<i>", "<i>#{description}</i><font size='12'><sup>#{footnote_references}</sup></font>"], opts, nil, leading)
     else
-      hanging_indent([indents, "#{description}#{footnote_references}"], opts)
+      hanging_indent([indents, "#{description}<font size='12'><sup>#{footnote_references}</sup></font>"], opts, nil, leading)
     end
   end
 
@@ -627,12 +637,12 @@ class ExportChapterPdf
       x_ids = t.relationships.excluded_countries.data.map(&:id)
       excluded = @uktt.response.included.select{|obj| x_ids.include? obj.id}
 
-      footnotes_string = footnotes.map(&:id).map{|fid| " (#{@footnotes_lookup[fid]})"}.join(' ')
+      footnotes_string = footnotes.map(&:id).map{|fid| " <sup>[#{@footnotes_lookup[fid]}]</sup>"}.join(' ')
       excluded_string = excluded.map(&:id).map{|xid| " (Excluding #{xid})"}.join(' ')
       duty_string = duty.join.gsub('0.00 %', 'Free')
       s << "#{geo}#{excluded_string}-#{duty_string}#{footnotes_string}"
     end
-    s.sort.join('; ')
+    {content: s.sort.join('; '), inline_format: true}
   end
 
   def formatted_vat_rate_cell
