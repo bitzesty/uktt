@@ -637,7 +637,7 @@ class ExportChapterPdf
       x_ids = t.relationships.excluded_countries.data.map(&:id)
       excluded = @uktt.response.included.select{|obj| x_ids.include? obj.id}
 
-      footnotes_string = footnotes.map(&:id).map{|fid| " <sup>[#{@footnotes_lookup[fid]}]</sup>"}.join(' ')
+      footnotes_string = footnotes.map(&:id).map{|fid| "<sup><font size='9'>[#{@footnotes_lookup[fid]}]</font></sup>"}.join(' ')
       excluded_string = excluded.map(&:id).map{|xid| " (Excluding #{xid})"}.join(' ')
       duty_string = duty.join.gsub('0.00 %', 'Free')
       s << "#{geo}#{excluded_string}-#{duty_string}#{footnotes_string}"
