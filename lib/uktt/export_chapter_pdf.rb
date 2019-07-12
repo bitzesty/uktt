@@ -167,9 +167,7 @@ class ExportChapterPdf
     t = !header.nil? ? [[{ content: header, kerning: true, inline_format: true, colspan: 2, padding_bottom: 0 }, nil]] : []
     make_table(
       t << [
-        # has_footnote ? format_footnoted_text(array[0]) : format_text(array[0]),
         format_text(array[0], leading),
-        # has_footnote ? format_footnoted_text(array[1]) : format_text(array[1]),
         format_text(array[1], leading)
       ],
       opts
