@@ -65,19 +65,19 @@ class ExportChapterPdf
   end
 
   def set_fonts
-    font_families.update('CabinCondensed' => {
-                           normal: 'vendor/assets/Cabin_Condensed/CabinCondensed-Regular.ttf',
-                           bold: 'vendor/assets/Cabin_Condensed/CabinCondensed-Bold.ttf'
+    font_families.update('OpenSans' => {
+                           normal: 'vendor/assets/Open_Sans/OpenSans-Regular.ttf',
+                           italic: 'vendor/assets/Open_Sans/OpenSans-RegularItalic.ttf',
+                           medium: 'vendor/assets/Open_Sans/OpenSans-SemiBold.ttf',
+                           medium_italic: 'vendor/assets/Open_Sans/OpenSans-SemiBoldItalic.ttf',
+                           bold: 'vendor/assets/Open_Sans/OpenSans-Bold.ttf',
+                           bold_italic: 'vendor/assets/Open_Sans/OpenSans-BoldItalic.ttf'
                          })
-    font_families.update('Cabin' => {
-                           normal: 'vendor/assets/Cabin/Cabin-Regular.ttf',
-                           italic: 'vendor/assets/Cabin/Cabin-Italic.ttf',
-                           medium: 'vendor/assets/Cabin/Cabin-Medium.ttf',
-                           medium_italic: 'vendor/assets/Cabin/Cabin-MediumItalic.ttf',
-                           bold: 'vendor/assets/Cabin/Cabin-Bold.ttf',
-                           bold_italic: 'vendor/assets/Cabin/Cabin-BoldItalic.ttf'
+    font_families.update('Monospace' => {
+                           normal: 'vendor/assets/Overpass_Mono/OverpassMono-Regular.ttf',
+                           bold: 'vendor/assets/Overpass_Mono/OverpassMono-Bold.ttf'
                          })
-    font 'Cabin'
+    font 'OpenSans'
     font_size @base_table_font_size
   end
 
@@ -123,9 +123,9 @@ class ExportChapterPdf
     # expecting something like this:
     # `@pages_headings = {1=>["01", "02", "03", "04"], 2=>["04", "05", "06"]}`
     footer_data_array = [[
-      format_text("<font size=9 name='CabinCondensed'>#{Date.today.strftime('%-d %B %Y')}</font>"),
-      format_text("<b><font size='15' name='CabinCondensed'>#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]}</font>#{Prawn::Text::NBSP * 2}#{page_number}</b>"),
-      format_text("<b><font size=9 name='CabinCondensed'>Customs Tariff</b> Vol 2 Sect #{@section.data.attributes.numeral}#{Prawn::Text::NBSP * 3}<b>#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]} #{@pages_headings[page_number].first}-#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]} #{@pages_headings[page_number].last}</font></b>")
+      format_text("<font size=9>#{Date.today.strftime('%-d %B %Y')}</font>"),
+      format_text("<b><font size='15'>#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]}</font>#{Prawn::Text::NBSP * 2}#{page_number}</b>"),
+      format_text("<b><font size=9>Customs Tariff</b> Vol 2 Sect #{@section.data.attributes.numeral}#{Prawn::Text::NBSP * 3}<b>#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]} #{@pages_headings[page_number].first}-#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]} #{@pages_headings[page_number].last}</font></b>")
     ]]
     footer_data_array
   end
@@ -270,7 +270,7 @@ class ExportChapterPdf
     else
       opts = {
         width: @printable_width / 3,
-        column_widths: [@indent_amount],
+        column_widths: [(@indent_amount + 2)],
         cell_style: {
           padding_bottom: 0
         }
@@ -317,9 +317,8 @@ class ExportChapterPdf
     html_string = "<table>#{html.gsub("\r\n", '')}</table>"
     table(html_table_data(html_string), cell_style: {
       padding: 2, 
-      size: 5.5, 
-      border_widths: [0.1, 0.1], 
-      name: "CabinCondensed"
+      size: 5, 
+      border_widths: [0.1, 0.1]
     } ) do |t|
       t.width = @printable_width / 3
     end
@@ -467,7 +466,7 @@ class ExportChapterPdf
   def heading_row_head(v2_heading)
     heading = v2_heading.data.attributes
     head = {
-      content: "<b><font name='CabinCondensed'>#{heading[:goods_nomenclature_item_id][0..1]} #{heading[:goods_nomenclature_item_id][2..3]}</font></b>",
+      content: "<b>#{heading[:goods_nomenclature_item_id][0..1]} #{heading[:goods_nomenclature_item_id][2..3]}</b>",
       kerning: true,
       size: 12,
       borders: [],
@@ -480,11 +479,12 @@ class ExportChapterPdf
   def heading_row_title(v2_heading)
     heading = v2_heading.data.attributes
     title = {
-      content: "<b><font name='CabinCondensed'>#{heading[:description].upcase}</font><b>",
+      content: "<b>#{heading[:description].gsub('|', Prawn::Text::NBSP).upcase}<b>",
       kerning: true,
       size: @base_table_font_size,
       width: @cw[0],
       borders: [],
+      padding_top: 0,
       inline_format: true
     }
     if heading.declarable
@@ -550,7 +550,7 @@ class ExportChapterPdf
       leading = 0
     else
       footnote_references = " [#{footnotes_array.join(',')}]"
-      leading = 6
+      leading = 4
     end
 
     # TODO: implement Commodity#from_harmonized_system? and Commodity#in_combined_nomenclature?
@@ -564,11 +564,11 @@ class ExportChapterPdf
     # end
     description = render_special_characters(commodity.description)
     if commodity.number_indents.to_i <= 1 #|| !commodity.declarable
-      format_text("<b>#{description}</b><font size='12'><sup><#{footnote_references}</sup></font>", leading)
+      format_text("<b>#{description}</b><font size='11'><sup><#{footnote_references}</sup></font>", leading)
     elsif commodity.declarable
-      hanging_indent(["<i>#{indents}<i>", "<i>#{description}</i><font size='12'><sup>#{footnote_references}</sup></font>"], opts, nil, leading)
+      hanging_indent(["<i>#{indents}<i>", "<i>#{description}</i><font size='11'><sup>#{footnote_references}</sup></font>"], opts, nil, leading)
     else
-      hanging_indent([indents, "#{description}<font size='12'><sup>#{footnote_references}</sup></font>"], opts, nil, leading)
+      hanging_indent([indents, "#{description}<font size='11'><sup>#{footnote_references}</sup></font>"], opts, nil, leading)
     end
   end
 
@@ -580,13 +580,13 @@ class ExportChapterPdf
   def commodity_code_cell(commodity)
     return '' unless commodity.declarable
 
-    format_text "#{commodity.goods_nomenclature_item_id[0..5]}#{Prawn::Text::NBSP * 3}#{commodity.goods_nomenclature_item_id[6..7]}"
+    format_text "<font name='Monospace'>#{commodity.goods_nomenclature_item_id[0..5]}#{Prawn::Text::NBSP * 1}#{commodity.goods_nomenclature_item_id[6..7]}</font>"
   end
 
   def additional_commodity_code_cell(commodity)
     return '' unless commodity.declarable
 
-    format_text (commodity.goods_nomenclature_item_id[8..9]).to_s
+    format_text "<font name='Monospace'>#{(commodity.goods_nomenclature_item_id[8..9]).to_s}</font>"
   end
 
   def specific_provisions(v2_commodity)

@@ -33,19 +33,19 @@ class ExportCoverPdf
   end
 
   def set_fonts
-    font_families.update('CabinCondensed' => {
-                           normal: 'vendor/assets/Cabin_Condensed/CabinCondensed-Regular.ttf',
-                           bold: 'vendor/assets/Cabin_Condensed/CabinCondensed-Bold.ttf'
+    font_families.update('OpenSans' => {
+                           normal: 'vendor/assets/Open_Sans/OpenSans-Regular.ttf',
+                           italic: 'vendor/assets/Open_Sans/OpenSans-RegularItalic.ttf',
+                           medium: 'vendor/assets/Open_Sans/OpenSans-SemiBold.ttf',
+                           medium_italic: 'vendor/assets/Open_Sans/OpenSans-SemiBoldItalic.ttf',
+                           bold: 'vendor/assets/Open_Sans/OpenSans-Bold.ttf',
+                           bold_italic: 'vendor/assets/Open_Sans/OpenSans-BoldItalic.ttf'
                          })
-    font_families.update('Cabin' => {
-                           normal: 'vendor/assets/Cabin/Cabin-Regular.ttf',
-                           italic: 'vendor/assets/Cabin/Cabin-Italic.ttf',
-                           medium: 'vendor/assets/Cabin/Cabin-Medium.ttf',
-                           medium_italic: 'vendor/assets/Cabin/Cabin-MediumItalic.ttf',
-                           bold: 'vendor/assets/Cabin/Cabin-Bold.ttf',
-                           bold_italic: 'vendor/assets/Cabin/Cabin-BoldItalic.ttf'
+    font_families.update('Monospace' => {
+                           normal: 'vendor/assets/Overpass_Mono/OverpassMono-Regular.ttf',
+                           bold: 'vendor/assets/Overpass_Mono/OverpassMono-Bold.ttf'
                          })
-    font 'Cabin'
+    font 'OpenSans'
     font_size @base_table_font_size
   end
 
@@ -73,9 +73,9 @@ class ExportCoverPdf
 
   def footer_data
     footer_data_array = [[
-      format_text("<font size=9 name='CabinCondensed'>#{Date.today.strftime('%-d %B %Y')}</font>"),
-      format_text("<b><font name='CabinCondensed'>#{'i' * (page_number - 1)}</font></b>"),
-      format_text("<b><font size=9 name='CabinCondensed'>Customs Tariff</b> Vol 2")
+      format_text("<font size=9>#{Date.today.strftime('%-d %B %Y')}</font>"),
+      format_text("<b>#{'i' * (page_number - 1)}</b>"),
+      format_text("<font size=9><b>Customs Tariff</b> Vol 2</font>")
     ]]
     footer_data_array
   end
