@@ -341,7 +341,7 @@ class ExportChapterPdf
         @footnotes[f.code][:refs] << @uktt.response.data.id
       else
         @footnotes[f.code] = {
-          text: "#{f.code}-#{f.description}",
+          text: "#{f.code}-#{render_footnote(f.description)}",
           refs: [@uktt.response.data.id]
         }
         unless @footnotes_lookup[f.code]
@@ -349,6 +349,10 @@ class ExportChapterPdf
         end
       end
     end
+  end
+
+  def render_footnote(note)
+    Nokogiri::HTML(note).css('p').map(&:content).join("\n")
   end
 
   def update_quotas(v2_commodity, heading)
