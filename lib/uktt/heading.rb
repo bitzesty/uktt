@@ -1,12 +1,13 @@
 module Uktt
   # A Chapter object for dealing with an API resource
   class Heading
-    attr_accessor :config, :heading_id
+    attr_accessor :config, :heading_id, :response
 
     def initialize(opts = {})
       @heading_id = opts[:heading_id] || nil
       Uktt.configure(opts)
       @config = Uktt.config
+      @response = nil
     end
 
     def retrieve
@@ -38,14 +39,24 @@ module Uktt
       @config = Uktt.config
     end
 
+    def find(id)
+      return '@response is nil, run #retrieve first' unless @response
+  
+      response = @response.included.select do |obj|
+        obj.id === id || obj.type === id
+      end
+      response.length == 1 ? response.first : response
+    end
+
     private
 
     def fetch(resource)
-      Uktt::Http.new(@config[:host], 
-                     @config[:version], 
-                     @config[:debug])
+      @response = Uktt::Http.new(
+        @config[:host], 
+        @config[:version], 
+        @config[:debug])
       .retrieve(resource, 
-                     @config[:return_json])
+        @config[:return_json])
     end
   end
 end
