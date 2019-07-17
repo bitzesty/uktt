@@ -11,14 +11,12 @@ Uktt provides a way to work with the UK Trade Tariff API, https://api.trade-tari
 
 ## Installation
 
-The repository is here: __https://github.com/mcumcu/uktt__
-
-<!-- The [project](https://gitlab.bitzesty.com/christopher.unger/uktt) is on BitZesty gitlab, and access is set to "internal", so that it can be cloned by any logged in BitZesty user. -->
+The repository is here: __https://gitlab.bitzesty.com/open-source/uktt__
 
 Add to your Gemfile:
 
 ```ruby
-gem 'uktt'
+gem 'uktt', git: 'https://gitlab.bitzesty.com/open-source/uktt.git'
 ```
 
 ## Usage
@@ -259,9 +257,9 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitLab at https://github.com/mcumcu/uktt/issues.
+Pull requests: https://gitlab.bitzesty.com/open-source/uktt/merge_requests.
 
-PRs can be submitted here https://github.com/mcumcu/uktt/pulls.
+Issues list: https://gitlab.bitzesty.com/open-source/uktt/issues.
 
 This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
@@ -271,4 +269,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the `uktt` project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/uktt/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the `uktt` project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://gitlab.bitzesty.com/open-source/uktt/blob/master/CODE_OF_CONDUCT.md).

@@ -6,21 +6,21 @@ Gem::Specification.new do |spec|
   spec.name          = 'uktt'
   spec.version       = Uktt::VERSION
   spec.authors       = ['Christopher Unger']
-  spec.email         = ['mcu@mac.com']
+  spec.email         = ['christopher.unger@bitzesty.com']
 
   spec.summary       = 'A gem to work with the UK Trade Tariff API.'
   # spec.description   = %q{A gem to work with the UK Trade Tariff API.}
-  spec.homepage      = 'https://github.com/mcumcu/uktt'
+  spec.homepage      = 'https://gitlab.bitzesty.com/open-source/uktt'
   spec.license       = 'MIT'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
   if spec.respond_to?(:metadata)
-    spec.metadata['allowed_push_host'] = 'https://github.com/'
+    spec.metadata['allowed_push_host'] = 'https://gitlab.com/'
 
     spec.metadata['homepage_uri'] = spec.homepage
-    spec.metadata['source_code_uri'] = 'https://github.com/mcumcu/uktt'
-    spec.metadata['changelog_uri'] = 'https://github.com/mcumcu/uktt/wiki'
+    spec.metadata['source_code_uri'] = 'https://gitlab.bitzesty.com/open-source/uktt'
+    spec.metadata['changelog_uri'] = 'https://gitlab.bitzesty.com/open-source/uktt/wikis/home'
   else
     raise 'RubyGems 2.0 or newer is required to protect against ' \
       'public gem pushes.'
