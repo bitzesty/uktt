@@ -37,7 +37,7 @@ class ExportChapterPdf
     unless @chapter_id.to_s == 'test'
       @chapter = Uktt::Chapter.new(@opts.merge(chapter_id: @chapter_id, version: 'v2')).retrieve
       @section = Uktt::Section.new(@opts.merge(section_id: @chapter.data.relationships.section.data.id, version: 'v2')).retrieve
-      @current_heading = @section[:formatted_position]
+      @current_heading = @section[:data][:attributes][:position]
     end
 
     bounding_box([0, @printable_height],
@@ -89,6 +89,7 @@ class ExportChapterPdf
     if @chapter.data.attributes.goods_nomenclature_item_id[0..1] == @section.data.attributes.chapter_from
       section_info
       pad(16) { stroke_horizontal_rule }
+      start_new_page
     end
 
     chapter_info
@@ -125,7 +126,7 @@ class ExportChapterPdf
     footer_data_array = [[
       format_text("<font size=9>#{Date.today.strftime('%-d %B %Y')}</font>"),
       format_text("<b><font size='15'>#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]}</font>#{Prawn::Text::NBSP * 2}#{page_number}</b>"),
-      format_text("<b><font size=9>Customs Tariff</b> Vol 2 Sect #{@section.data.attributes.numeral}#{Prawn::Text::NBSP * 3}<b>#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]} #{@pages_headings[page_number].first}-#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]} #{@pages_headings[page_number].last}</font></b>")
+      format_text("<b><font size=9>Customs Tariff</b> Vol 2 Sect #{@section.data.attributes.numeral}#{Prawn::Text::NBSP * 3}<b>#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]} #{@pages_headings[page_number].first.to_s.rjust(2, "0")}-#{@chapter.data.attributes.goods_nomenclature_item_id[0..1]} #{@pages_headings[page_number].last.to_s.rjust(2, "0")}</font></b>")
     ]]
     footer_data_array
   end
@@ -180,7 +181,7 @@ class ExportChapterPdf
   end
 
   def text_indent(note, opts)
-    if /<table>.*/.match?(note)
+    if /<table.*/.match?(note)
       indent(0) do
         pad(@base_table_font_size) do
           render_html_table(note)
@@ -196,44 +197,66 @@ class ExportChapterPdf
   end
 
   def section_info(section = @section)
-    opts = {
-      width: @printable_width / 3,
-      column_widths: [@indent_amount],
-      cell_style: {
-        padding_bottom: 0
+    section_note = section.data.attributes.section_note || ''
+
+    if section_note.length > 3200
+      opts = {
+        width: @printable_width / 3,
+        column_widths: [@indent_amount],
+        cell_style: {
+          padding_bottom: 0
+        },
+        inline_format: true,
       }
-    }
-    column_1 = format_text("<b><font size='13'>SECTION #{section.data.attributes.numeral}</font>\n<font size='17'>#{section.data.attributes.title}</font></b>")
-    _column_x, column_2, column_3 = get_notes_columns(section.data.attributes.section_note, opts, 'Notes', 10)
-    table(
-      [
+      column_box([0, cursor], columns: 3, width: bounds.width, height: (@printable_height - @footer_height - (@printable_height - cursor)), spacer: (@base_table_font_size * 3)) do
+        text("<b><font size='13'>SECTION #{section.data.attributes.numeral}</font>\n<font size='17'>#{section.data.attributes.title}</font></b>", opts)
+
+        move_down(@base_table_font_size * 1.5)
+
+        text('<b>Notes</b>', opts.merge(size: 10))
+        section_note.split(/\* /).each do |note|
+          text_indent(note.gsub(%r{\\.\s}, '. '), opts.merge(size: 10))
+        end
+      end
+    else
+      opts = {
+        width: @printable_width / 3,
+        column_widths: [@indent_amount],
+        cell_style: {
+          padding_bottom: 0
+        }
+      }
+      column_1 = format_text("<b><font size='13'>SECTION #{section.data.attributes.numeral}</font>\n<font size='17'>#{section.data.attributes.title}</font></b>")
+      _column_x, column_2, column_3 = get_notes_columns(section.data.attributes.section_note, opts, 'Notes', 10)
+      table(
         [
-          column_1,
-          column_2,
-          column_3
-        ]
-      ],
-      column_widths: [@printable_width / 3, @printable_width / 3, @printable_width / 3]
-    ) do |t|
-      t.cells.borders = []
-      t.column(0).padding_right = 12
-      t.row(0).padding_top = 0
+          [
+            column_1,
+            column_2,
+            column_3
+          ]
+        ],
+        column_widths: [@printable_width / 3, @printable_width / 3, @printable_width / 3]
+      ) do |t|
+        t.cells.borders = []
+        t.column(0).padding_right = 12
+        t.row(0).padding_top = 0
+      end
     end
   end
 
   def chapter_info(chapter = @chapter)
     chapter_note = chapter.data.attributes.chapter_note || ''
-    notes, additional_notes, *everything_else = chapter_note
-      .split(/#+\s*[Additional|Subheading]+ Note[s]*\s*#+/i)
-      .map do |s|
-        s.delete('\\')
-        .gsub("\r\n\r\n", "\r\n")
-        .strip
-      end
+    notes, additional_notes, *everything_else = chapter_note.split(/#+\s*[Additional|Subheading]+ Note[s]*\s*#+/i)
+                                                            .map do |s|
+                                                              s.delete('\\')
+                                                              .gsub("\r\n\r\n", "\r\n")
+                                                              # .strip
+                                                            end
 
     notes ||= ''
 
-    if additional_notes || notes.length > 3200
+    if (additional_notes && chapter_note.length > 2300) || chapter_note.length > 3200
       opts = {
         kerning: true,
         inline_format: true,
@@ -251,13 +274,14 @@ class ExportChapterPdf
 
         move_down(@base_table_font_size)
 
-        text('<b>Additional Notes</b>', opts)
-        move_down(@base_table_font_size / 2)
-        additional_notes && additional_notes.split(/\* /).each do |note|
-          text_indent(note, opts)
+        if additional_notes
+          text('<b>Additional Notes</b>', opts)
+          move_down(@base_table_font_size / 2)
+          additional_notes && additional_notes.split(/\* /).each do |note|
+            text_indent(note, opts)
+          end
+          move_down(@base_table_font_size)
         end
-
-        move_down(@base_table_font_size)
 
         everything_else.each do |nn|
           text('<b>Notes</b>', opts)
@@ -848,8 +872,16 @@ class ExportChapterPdf
     notes = notes_str_to_note_array(notes_str)
 
     title = "<b><font size='#{@base_table_font_size * 1.5}'>Chapter #{@chapter.data.attributes.goods_nomenclature_item_id[0..1].gsub(/^0/, '')}\n#{@chapter[:formatted_description]}</font></b>\n\n"
+    offset = 0
     notes.each_with_index do |note, i|
-      header = i.zero? ? "#{fill_columns == 3 ? title : nil}<b><font size='#{font_size}'>#{header_text}</font></b>" : nil
+      m = note.join.match(/##\s*(additional|subheading) note[s]*\s*##/i)
+      if m
+        note[0], note[1] = '', ''
+        header = "#{fill_columns == 3 ? title : nil}<b><font size='#{font_size}'>#{"#{m[1]} Note"}</font></b>"
+        offset += 1
+      else
+        header = i.zero? ? "#{fill_columns == 3 ? title : nil}<b><font size='#{font_size}'>#{header_text}</font></b>" : nil
+      end
       new_note = [
         {
           content: hanging_indent([
@@ -859,10 +891,9 @@ class ExportChapterPdf
           borders: []
         }
       ]
-
       if fill_columns == 2
-        if i < (notes.length / 2)
-          column_2 << new_note
+        if i - offset < (notes.length / 2)
+          column_2 << new_note unless new_note == ['', '']
         else
           column_3 << new_note
         end
