@@ -96,7 +96,7 @@ class ExportCoverPdf
     }
     image "vendor/assets/HMRC-logo.png", width: 180
     text_box "<font size='20'><b>Volume 2</b></font>\n<font size='17'>Schedule of duty and trade\nstatistical descriptions,\ncodes and rates</font>", at: [(@printable_width / 3), @printable_height - 100], inline_format: true
-    text_box "<font size='32'>Integrated\nTariff of the\nUnited Kingdom</font>\n\n\n<font size='12'>Short title: <i>TARIFF</i>\n\n\nwww.gov.uk/trade-tariff\n\n\n<b>#{Date.today.strftime('%Y')} EDITION</b>\n\n\n\n\n\n\n\nLONDON: TSO\n#{Date.today.strftime('%-d %B %Y')}</font>", at: [(@printable_width / 3) * 2 + (@base_table_font_size * 3), @printable_height - 100], inline_format: true
+    text_box "<font size='32'>Integrated\nTariff of the\nUnited Kingdom</font>\n\n\n<font size='12'>Short title: <i>TARIFF</i>\n\n\nwww.gov.uk/trade-tariff\n\n\n<b>#{Date.today.strftime('%-d %B %Y')}</b>\n\n\n\n\n\n\n\n</font>", at: [(@printable_width / 3) * 2 + (@base_table_font_size * 3), @printable_height - 100], inline_format: true
     stroke_rectangle [0, @printable_height - 200], ((@printable_width / 3) * 2), 190
     text_box "<font size='11'><b><u>Notice to all Users</u></b></font>", at: [20, @printable_height - 210], inline_format: true, width: ((@printable_width / 3) * 2) - 40, align: :center
     text_box "<font size='11'><b>#{notice_content}</b></font>", at: [20, @printable_height - 228], inline_format: true, width: ((@printable_width / 3) * 2) - 40
