@@ -613,10 +613,28 @@ class ExportChapterPdf
     format_text "<font name='Monospace'>#{(commodity.goods_nomenclature_item_id[8..9]).to_s}</font>"
   end
 
+  # copied from backend/app/models/measure_type.rb:41
+  def measure_type_excise?(measure_type)
+    measure_type.attributes.measure_type_series_id == 'Q'
+  end
+
+  def measure_type_tax_code(measure_type)
+    measure_type.attributes.description.scan(/\d{3}/).first
+  end
+
   def specific_provisions(v2_commodity)
     return '' unless v2_commodity.data.attributes.declarable
 
-    commodity_measures(v2_commodity).select{|m| measure_is_quota(m)}.length > 0 ? 'TQ' : ''
+    measures = commodity_measures(v2_commodity)
+
+    excise_codes = measures.map do |measure|
+      v2_commodity.included.find {|obj| obj.id == measure.relationships.measure_type.data.id && obj.type == 'measure_type'}
+    end.select(&method(:measure_type_excise?)).map(&method(:measure_type_tax_code)).uniq.sort
+
+    str = excise_codes.length > 0 ? "EXCISE (#{excise_codes.join(', ')})" : ''
+    delimiter = str.length > 0 ? "\n" : ''
+
+    str + (measures.select{|m| measure_is_quota(m)}.length > 0 ? delimiter + 'TQ' : '')
   end
 
   def units_of_quantity_list
