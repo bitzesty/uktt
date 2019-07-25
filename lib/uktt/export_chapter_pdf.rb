@@ -622,19 +622,27 @@ class ExportChapterPdf
     measure_type.attributes.description.scan(/\d{3}/).first
   end
 
+  def measure_type_suspension?(measure_type)
+    measure_type.attributes.description =~ /suspension/
+  end
+
   def specific_provisions(v2_commodity)
     return '' unless v2_commodity.data.attributes.declarable
 
     measures = commodity_measures(v2_commodity)
 
-    excise_codes = measures.map do |measure|
+    measure_types = measures.map do |measure|
       v2_commodity.included.find {|obj| obj.id == measure.relationships.measure_type.data.id && obj.type == 'measure_type'}
-    end.select(&method(:measure_type_excise?)).map(&method(:measure_type_tax_code)).uniq.sort
+    end
+    excise_codes = measure_types.select(&method(:measure_type_excise?)).map(&method(:measure_type_tax_code)).uniq.sort
 
     str = excise_codes.length > 0 ? "EXCISE (#{excise_codes.join(', ')})" : ''
     delimiter = str.length > 0 ? "\n" : ''
 
-    str + (measures.select{|m| measure_is_quota(m)}.length > 0 ? delimiter + 'TQ' : '')
+    str = str + (measure_types.select(&method(:measure_type_suspension?)).length > 0 ? delimiter + 'S' : '')
+    delimiter = str.length > 0 ? "\n" : ''
+
+    str + (measures.select(&method(:measure_is_quota)).length > 0 ? delimiter + 'TQ' : '')
   end
 
   def units_of_quantity_list
