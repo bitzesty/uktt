@@ -8,6 +8,7 @@ class ExportChapterPdf
 
   THIRD_COUNTRY = '103'.freeze
   TARIFF_PREFERENCE = '142'.freeze
+  CUSTOM_UNION_DUTY = '106'.freeze
   MEASUREMENT_UNITS = ["% vol", "% vol/hl", "ct/l", "100 p/st", "c/k", "10 000 kg/polar", "kg DHS", "100 kg", "100 kg/net eda", "100 kg common wheat", "100 kg/br", "100 kg live weight", "100 kg/net mas", "100 kg std qual", "100 kg raw sugar", "100 kg/net/%sacchar.", "EUR", "gi F/S", "g", "GT", "hl", "100 m", "kg C₅H₁₄ClNO", "tonne KCl", "kg", "kg/tot/alc", "kg/net eda", "GKG", "kg/lactic matter", "kg/raw sugar", "kg/dry lactic matter", "1000 l", "kg methylamines", "KM", "kg N", "kg H₂O₂", "kg KOH", "kg K₂O", "kg P₂O₅", "kg 90% sdt", "kg NaOH", "kg U", "l alc. 100%", "l", "L total alc.", "1000 p/st", "1000 pa", "m²", "m³", "1000 m³", "m", "1000 kWh", "p/st", "b/f", "ce/el", "pa", "TJ", "1000 kg", "1000 kg/net eda", "1000 kg/biodiesel", "1000 kg/fuel content", "1000 kg/bioethanol", "1000 kg/net mas", "1000 kg std qual", "1000 kg/net/%saccha.", "Watt"].freeze
 
   def initialize(opts = {})
@@ -650,7 +651,7 @@ class ExportChapterPdf
       excluded: {},
     }
     s = []
-    @uktt.find('measure').select{|m| m.relationships.measure_type.data.id == TARIFF_PREFERENCE }.each do |t|
+    @uktt.find('measure').select{|m| m.relationships.measure_type.data.id == TARIFF_PREFERENCE || m.relationships.measure_type.data.id == CUSTOM_UNION_DUTY }.each do |t|
       g_id = t.relationships.geographical_area.data.id
       geo = @uktt.response.included.select{|obj| obj.id == g_id}.map{|t| t.id =~ /[A-Z]{2}/ ? t.id : t.attributes.description}.join(', ')
 
