@@ -30,7 +30,8 @@ module Uktt
               host: Uktt::Http.api_host, 
               version: Uktt::Http.spec_version, 
               debug: false,
-              return_json: false
+              return_json: false,
+              currency: "EURO"
             }
 
   @valid_config_keys = @config.keys
