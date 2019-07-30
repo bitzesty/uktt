@@ -413,29 +413,32 @@ class ExportChapterPdf
   end
 
   def update_prs(v2_commodity)
-    pr_measures(v2_commodity).each do |measure_pr|
-      id = measure_pr.relationships.measure_type.data.id
-      desc = v2_commodity.included.select{|obj| obj.type = "measure_type" && obj.id == id}.first.attributes.description
-      conditions_ids = measure_pr.relationships.measure_conditions.data.map(&:id)
+    measures = pr_measures(v2_commodity)
+    measures.each do |measure|
       document_codes = []
       requirements = []
-      v2_commodity.included.select{|obj| obj.type = "measure_condition" && conditions_ids.include?(obj.id) }.each do |condition|
-        document_codes << condition.attributes.document_code unless condition.nil?
-        requirements << condition.attributes.requirement unless condition.nil?
-      end
+      id = measure.relationships.measure_type.data.id
 
       if @prs[id]
-        # @prs[id][:measures] << measure_pr
         @prs[id][:commodities] << v2_commodity.data.attributes.goods_nomenclature_item_id
       else
+        desc = v2_commodity.included.select{|obj| obj.type = "measure_type" && obj.id == id}.first.attributes.description
+        conditions_ids = measure.relationships.measure_conditions.data.map(&:id)
+        conditions = v2_commodity.included.select{|obj| obj.type = "measure_condition" && conditions_ids.include?(obj.id) }
+        conditions.each do |condition|
+          unless condition.nil?
+            document_codes << condition.attributes.document_code 
+            requirements << condition.attributes.requirement
+          end
+        end
         @prs[id] = {
-          measures: measure_pr,
+          measures: measure,
           commodities: [v2_commodity.data.attributes.goods_nomenclature_item_id],
           description: desc,
           conditions: document_codes.reject(&:empty?),
           requirements: requirements.reject(&:nil?),
         }
-      end     
+      end
     end
   end
 
@@ -497,17 +500,15 @@ class ExportChapterPdf
             @uktt = Uktt::Commodity.new(@opts.merge(commodity_id: c.attributes.goods_nomenclature_item_id, version: 'v2'))
             v2_commodity = @uktt.retrieve
 
-            if v2_commodity.data
-              commodity = v2_commodity.data.attributes
+            if v2_commodity.data   
+              result << commodity_row(v2_commodity)
+              v2_commodity.data.attributes.description = c.attributes.description
               
-              update_footnotes(v2_commodity) if commodity.declarable
+              update_footnotes(v2_commodity) if v2_commodity.data.attributes.declarable
 
               update_quotas(v2_commodity, heading)
 
               update_prs(v2_commodity)
-
-              result << commodity_row(v2_commodity)
-              v2_commodity.data.attributes.description = c.attributes.description
             else
               result << commodity_row_subhead(c)
             end
