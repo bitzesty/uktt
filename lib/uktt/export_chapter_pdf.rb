@@ -668,7 +668,7 @@ class ExportChapterPdf
     measure = @uktt.find('measure').select{|m| m.relationships.measure_type.data.id == THIRD_COUNTRY }.first
     return '' if measure.nil?
 
-    @uktt.find(measure.relationships.duty_expression.data.id).attributes.base
+    clean_rates(@uktt.find(measure.relationships.duty_expression.data.id).attributes.base)
   end
 
   def preferential_tariffs
@@ -693,7 +693,7 @@ class ExportChapterPdf
 
       footnotes_string = footnotes.map(&:id).map{|fid| "<sup><font size='9'>[#{@footnotes_lookup[fid]}]</font></sup>"}.join(' ')
       excluded_string = excluded.map(&:id).map{|xid| " (Excluding #{xid})"}.join(' ')
-      duty_string = duty.join.gsub('0.00 %', 'Free')
+      duty_string = clean_rates(duty.join)
       s << "#{geo}#{excluded_string}-#{duty_string}#{footnotes_string}"
     end
     {content: s.sort.join('; '), inline_format: true}
@@ -849,7 +849,7 @@ class ExportChapterPdf
   end
 
   def quota_rate(duties)
-    duties.uniq.join(', ')
+    clean_rates(duties.uniq.join(', '))
   end
 
   def quota_period(measures)
@@ -980,8 +980,9 @@ class ExportChapterPdf
   end
 
   def clean_rates(raw)
-    raw.gsub('0.00 %', 'Free')
+    raw.gsub(/^0.00 %/, 'Free')
        .gsub(' EUR ', ' € ')
+       .gsub(' / ', '/')
        .gsub(/(\.[0-9]{1})0 /, '\1 ')
        .gsub(/([0-9]{1})\.0 /, '\1 ')
   end
