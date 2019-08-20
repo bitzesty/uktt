@@ -841,9 +841,10 @@ class ExportChapterPdf
   end
 
   def quota_geo_description(measures)
-    # @uktt.response.included.select{|obj| obj.id == measure.relationships.geographical_area.data.id}.first.attributes.description
     measures.map do |measure|
-      measure.relationships.geographical_area.data.id
+      if @uktt.response.included
+        @uktt.response.included.select{|obj| obj.id == measure.relationships.geographical_area.data.id}.first.attributes.description
+      end
     end.uniq.join(', ')
   end
 
