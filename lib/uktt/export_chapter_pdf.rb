@@ -989,7 +989,7 @@ class ExportChapterPdf
   end
 
   def pr_table_column_widths
-    column_ratios = [2, 1, 4, 4, 1, 1]
+    column_ratios = [2, 1, 4, 4, 1]
     multiplier = 741.89 / column_ratios.sum
     column_ratios.map { |n| n * multiplier }
   end
@@ -1053,7 +1053,7 @@ class ExportChapterPdf
           pr[:description], # Description, was Measure Type Code
           pr[:requirements].join("<br/><br/>"), # Requirements, was Measure Group Code
           pr[:conditions].join("<br/>"), # Document Code/s
-          '', # Ex-heading Indicator
+          # '', # Ex-heading Indicator
         ]
       end
     end
@@ -1099,9 +1099,9 @@ class ExportChapterPdf
         format_text('<b>Description</b>'), # format_text('<b>Measure Type Code</b>'),
         format_text('<b>Requirements</b>'), # format_text('<b>Measure Group Code</b>'),
         format_text('<b>Document Code/s</b>'),
-        format_text('<b>Ex-heading Indicator</b>')
+        # format_text('<b>Ex-heading Indicator</b>')
       ],
-      (1..6).to_a
+      (1..5).to_a
     ]
   end
 
