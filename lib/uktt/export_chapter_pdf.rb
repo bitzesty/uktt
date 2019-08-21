@@ -655,7 +655,7 @@ class ExportChapterPdf
 
   # copied from backend/app/models/measure_type.rb:41
   def measure_type_excise?(measure_type)
-    measure_type.attributes.measure_type_series_id == 'Q'
+    measure_type&.attributes&.measure_type_series_id == 'Q'
   end
 
   def measure_type_tax_code(measure_type)
@@ -663,7 +663,7 @@ class ExportChapterPdf
   end
 
   def measure_type_suspension?(measure_type)
-    measure_type.attributes.description =~ /suspension/
+    measure_type&.attributes&.description =~ /suspension/
   end
 
   def specific_provisions(v2_commodity)
@@ -789,28 +789,20 @@ class ExportChapterPdf
     quotas_array = quota_header_row
     
     @quotas.each do |measure_id, quota|
-      # measure = data[:measures] ? data[:measures][0] : nil
-      # quotas_array << [
-      #   quota_commodities(data[:commodities]),  # Commodity </font>, list of codes, 1 per line, with comma
-      #   quota_description(data[:descriptions]), # Description
-      #   quota_geo_description(measure),         # Country of origin, e.g. GATT, NCC, others, Israel, etc.
-      #   quota_order_no(measure),                # Tariff Quota Order No.
-      #   quota_rate(measure),                    # Quota rate
-      #   quota_period(quota_order),              # Quota period, date range
-      #   quota_units(quota_order),               # Quota units, e.g., pieces, kg, number
-      #   quota_docs(measure)                     # Documentary evidence required
-      # ]
+      commodity_ids = quota[:commodities].uniq
 
-      quotas_array << [
-        quota_commodities(quota[:commodities]),
-        quota_description(quota[:descriptions]),
-        quota_geo_description(quota[:measures]),
-        measure_id,
-        quota_rate(quota[:duties]),
-        quota_period(quota[:measures]),
-        quota_units(quota[:definitions]),
-        quota_docs(quota[:footnotes])
-      ]
+      while commodity_ids.length > 0
+        quotas_array << [
+          quota_commodities(commodity_ids.shift(56)),
+          quota_description(quota[:descriptions]),
+          quota_geo_description(quota[:measures]),
+          measure_id,
+          quota_rate(quota[:duties]),
+          quota_period(quota[:measures]),
+          quota_units(quota[:definitions]),
+          quota_docs(quota[:footnotes])
+        ]
+      end
     end
 
     unless quotas_array.length <= 2
