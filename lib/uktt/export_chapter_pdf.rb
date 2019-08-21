@@ -1044,14 +1044,18 @@ class ExportChapterPdf
 
     @prs.each do |id, pr|
 
-      prs_array << [
-        quota_commodities(pr[:commodities].uniq),
-        pr[:measures].attributes.import ? "Import" : "Export", # Import/Export
-        pr[:description], # Measure Type Code
-        pr[:requirements].join("<br/><br/>"), # Measure Group Code
-        pr[:conditions].join("<br/>"), # Document Code/s
-        '', # Ex-heading Indicator
-      ]
+      commodity_ids = pr[:commodities].uniq
+
+      while commodity_ids.length > 0
+        prs_array << [
+          quota_commodities(commodity_ids.shift(56)),
+          pr[:measures].attributes.import ? "Import" : "Export", # Import/Export
+          pr[:description], # Description, was Measure Type Code
+          pr[:requirements].join("<br/><br/>"), # Requirements, was Measure Group Code
+          pr[:conditions].join("<br/>"), # Document Code/s
+          '', # Ex-heading Indicator
+        ]
+      end
     end
 
     unless prs_array.length <= 2 || false
@@ -1092,8 +1096,8 @@ class ExportChapterPdf
       [
         format_text('<b>Commodity Code</b>'),
         format_text('<b>Import/ Export</b>'),
-        format_text('<b>Measure Type Code</b>'),
-        format_text('<b>Measure Group Code</b>'),
+        format_text('<b>Description</b>'), # format_text('<b>Measure Type Code</b>'),
+        format_text('<b>Requirements</b>'), # format_text('<b>Measure Group Code</b>'),
         format_text('<b>Document Code/s</b>'),
         format_text('<b>Ex-heading Indicator</b>')
       ],
