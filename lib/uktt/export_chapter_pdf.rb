@@ -11,6 +11,10 @@ class ExportChapterPdf
   CUSTOM_UNION_DUTY = '106'.freeze
   PREFERENTIAL_MEASURE_TYPE_IDS = [ TARIFF_PREFERENCE, CUSTOM_UNION_DUTY ].freeze
   MEASUREMENT_UNITS = ["% vol", "% vol/hl", "ct/l", "100 p/st", "c/k", "10 000 kg/polar", "kg DHS", "100 kg", "100 kg/net eda", "100 kg common wheat", "100 kg/br", "100 kg live weight", "100 kg/net mas", "100 kg std qual", "100 kg raw sugar", "100 kg/net/%sacchar.", "EUR", "gi F/S", "g", "GT", "hl", "100 m", "kg C₅H₁₄ClNO", "tonne KCl", "kg", "kg/tot/alc", "kg/net eda", "GKG", "kg/lactic matter", "kg/raw sugar", "kg/dry lactic matter", "1000 l", "kg methylamines", "KM", "kg N", "kg H₂O₂", "kg KOH", "kg K₂O", "kg P₂O₅", "kg 90% sdt", "kg NaOH", "kg U", "l alc. 100%", "l", "L total alc.", "1000 p/st", "1000 pa", "m²", "m³", "1000 m³", "m", "1000 kWh", "p/st", "b/f", "ce/el", "pa", "TJ", "1000 kg", "1000 kg/net eda", "1000 kg/biodiesel", "1000 kg/fuel content", "1000 kg/bioethanol", "1000 kg/net mas", "1000 kg std qual", "1000 kg/net/%saccha.", "Watt"].freeze
+  P_AND_R_MEASURE_TYPES_IMPORT = %w[277 705 724 745 410 420 465 474 475 707 710 712 714 722 728 730 746 747 748 750 755].freeze
+  P_AND_R_MEASURE_TYPES_EXPORT = %w[278 706 740 749 467 473 476 478 479 708 709 715 716 717 718 725 735 751].freeze
+  P_AND_R_MEASURE_TYPES_EXIM   = %w[760 719].freeze
+  P_AND_R_MEASURE_TYPES = (P_AND_R_MEASURE_TYPES_IMPORT + P_AND_R_MEASURE_TYPES_EXIM + P_AND_R_MEASURE_TYPES_EXPORT).freeze
 
   def initialize(opts = {})
     @opts = opts
@@ -32,6 +36,7 @@ class ExportChapterPdf
     @footnotes = {}
     @footnotes_lookup = {}
     @quotas = {}
+    @prs = {}
     @pages_headings = {}
 
     set_fonts
@@ -106,6 +111,8 @@ class ExportChapterPdf
     end
 
     tariff_quotas
+
+    prohibitions_and_restrictions
   end
 
   def page_footer
@@ -407,6 +414,36 @@ class ExportChapterPdf
     end
   end
 
+  def update_prs(v2_commodity)
+    measures = pr_measures(v2_commodity)
+    measures.each do |measure|
+      document_codes = []
+      requirements = []
+      id = measure.relationships.measure_type.data.id
+
+      if @prs[id]
+        @prs[id][:commodities] << v2_commodity.data.attributes.goods_nomenclature_item_id
+      else
+        desc = v2_commodity.included.select{|obj| obj.type = "measure_type" && obj.id == id}.first.attributes.description
+        conditions_ids = measure.relationships.measure_conditions.data.map(&:id)
+        conditions = v2_commodity.included.select{|obj| obj.type = "measure_condition" && conditions_ids.include?(obj.id) }
+        conditions.each do |condition|
+          unless condition.nil?
+            document_codes << condition.attributes.document_code 
+            requirements << condition.attributes.requirement
+          end
+        end
+        @prs[id] = {
+          measures: measure,
+          commodities: [v2_commodity.data.attributes.goods_nomenclature_item_id],
+          description: desc,
+          conditions: document_codes.reject(&:empty?),
+          requirements: requirements.reject(&:nil?),
+        }
+      end
+    end
+  end
+
   def commodities_table
     table commodity_table_data, column_widths: @cw do |t|
       t.cells.border_width = 0.25
@@ -436,6 +473,7 @@ class ExportChapterPdf
       if heading.declarable
         update_footnotes(v2_heading)
         update_quotas(v2_heading, heading)
+        update_prs(v2_heading)
       end
 
       result << heading_row_head(v2_heading)
@@ -464,15 +502,15 @@ class ExportChapterPdf
             @uktt = Uktt::Commodity.new(@opts.merge(commodity_id: c.attributes.goods_nomenclature_item_id, version: 'v2'))
             v2_commodity = @uktt.retrieve
 
-            if v2_commodity.data
-              commodity = v2_commodity.data.attributes
+            if v2_commodity.data   
+              result << commodity_row(v2_commodity)
+              v2_commodity.data.attributes.description = c.attributes.description
               
-              update_footnotes(v2_commodity) if commodity.declarable
+              update_footnotes(v2_commodity) if v2_commodity.data.attributes.declarable
 
               update_quotas(v2_commodity, heading)
 
-              result << commodity_row(v2_commodity)
-              v2_commodity.data.attributes.description = c.attributes.description
+              update_prs(v2_commodity)
             else
               result << commodity_row_subhead(c)
             end
@@ -979,6 +1017,12 @@ class ExportChapterPdf
     column_ratios.map { |n| n * multiplier }
   end
 
+  def pr_table_column_widths
+    column_ratios = [2, 1, 4, 4, 1]
+    multiplier = 741.89 / column_ratios.sum
+    column_ratios.map { |n| n * multiplier }
+  end
+
   def clean_rates(raw)
     raw.gsub(/^0.00 %/, 'Free')
        .gsub(' EUR ', ' € ')
@@ -1003,6 +1047,92 @@ class ExportChapterPdf
 
   def measure_duty_expression(measure)
     measure.relationships.duty_expression.data
+  end
+
+  def pr_measures(v2_commodity)
+    # c = Uktt::Commodity.new(commodity_id: '3403910000')
+    # v2 = c.retrieve
+    v2_commodity.included.select{|obj| obj.type == 'measure' && measure_is_pr(obj)}
+  end
+
+  def measure_is_pr(measure)
+    P_AND_R_MEASURE_TYPES.include?(measure.relationships.measure_type.data.id)
+  end
+
+  def prohibitions_and_restrictions
+    cell_style = {
+      padding: 0,
+      borders: [],
+      inline_format: true
+    }
+    table_opts = {
+      column_widths: pr_table_column_widths,
+      width: @printable_width,
+      cell_style: cell_style
+    }
+    prs_array = pr_header_row
+
+    @prs.each do |id, pr|
+
+      commodity_ids = pr[:commodities].uniq
+
+      while commodity_ids.length > 0
+        prs_array << [
+          quota_commodities(commodity_ids.shift(56)),
+          pr[:measures].attributes.import ? "Import" : "Export", # Import/Export
+          pr[:description], # Description, was Measure Type Code
+          pr[:requirements].join("<br/><br/>"), # Requirements, was Measure Group Code
+          pr[:conditions].join("<br/>"), # Document Code/s
+          # '', # Ex-heading Indicator
+        ]
+      end
+    end
+
+    unless prs_array.length <= 2 || false
+
+      start_new_page
+
+      font_size(19) do
+        text "Chapter #{@chapter.data.attributes.goods_nomenclature_item_id[0..1].gsub(/^0/, '')}#{Prawn::Text::NBSP * 4}<b>Additional Information</b>",
+             inline_format: true
+      end
+
+      font_size(13) do
+        pad_bottom(13) do
+          text '<b>Prohibitions and Restrictions</b>',
+               inline_format: true
+        end
+      end
+
+      table prs_array, table_opts do |t|
+        t.cells.border_width = 0.25
+        t.cells.borders = %i[top bottom]
+        t.cells.padding_top = 4
+        t.cells.padding_bottom = 6
+        t.cells.padding_right = 9
+        t.row(0).border_width = 1
+        t.row(0).borders = [:top]
+        t.row(1).borders = [:bottom]
+        t.row(0).padding_top = 0
+        t.row(0).padding_bottom = 0
+        t.row(1).padding_top = 0
+        t.row(1).padding_bottom = 2
+      end
+    end
+  end
+
+  def pr_header_row
+    [
+      [
+        format_text('<b>Commodity Code</b>'),
+        format_text('<b>Import/ Export</b>'),
+        format_text('<b>Description</b>'), # format_text('<b>Measure Type Code</b>'),
+        format_text('<b>Requirements</b>'), # format_text('<b>Measure Group Code</b>'),
+        format_text('<b>Document Code/s</b>'),
+        # format_text('<b>Ex-heading Indicator</b>')
+      ],
+      (1..5).to_a
+    ]
   end
 
   UNIT_ABBREVIATIONS = {
