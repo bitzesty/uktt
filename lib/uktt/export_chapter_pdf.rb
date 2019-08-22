@@ -803,7 +803,7 @@ class ExportChapterPdf
 
       while commodity_ids.length > 0
         quotas_array << [
-          quota_commodities(commodity_ids.shift(56)),
+          quota_commodities(commodity_ids.shift(quotas_array.length == 2 ? 42 : 56)),
           quota_description(quota[:descriptions]),
           quota_geo_description(quota[:measures]),
           measure_id,
