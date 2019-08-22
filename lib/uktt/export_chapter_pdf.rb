@@ -346,6 +346,14 @@ class ExportChapterPdf
     data_normalized
   end
 
+  def strip_tags(text)
+    return if text.nil?
+
+    noko = Nokogiri::HTML(text)
+    noko.css('span', 'abbr').each { |node| node.replace(node.children) }
+    noko.content
+  end
+
   def render_html_table(html)
     html_string = "<table>#{html.gsub("\r\n", '')}</table>"
     table(html_table_data(html_string), cell_style: {
@@ -429,14 +437,15 @@ class ExportChapterPdf
         conditions = v2_commodity.included.select{|obj| obj.type = "measure_condition" && conditions_ids.include?(obj.id) }
         conditions.each do |condition|
           unless condition.nil?
+            doc_code = condition.attributes.document_code
             document_codes << condition.attributes.document_code 
-            requirements << condition.attributes.requirement
+            requirements << "#{condition.attributes.condition_code}: #{strip_tags(condition.attributes.requirement)}#{" (#{doc_code})" unless doc_code.to_s.empty?}" unless condition.attributes.requirement.nil?
           end
         end
         @prs[id] = {
           measures: measure,
           commodities: [v2_commodity.data.attributes.goods_nomenclature_item_id],
-          description: desc,
+          description: "#{desc} (#{id})",
           conditions: document_codes.reject(&:empty?),
           requirements: requirements.reject(&:nil?),
         }
@@ -779,7 +788,8 @@ class ExportChapterPdf
   def tariff_quotas(chapter = @chapter)
     cell_style = {
       padding: 0,
-      borders: []
+      borders: [],
+      inline_format: true
     }
     table_opts = {
       column_widths: quota_table_column_widths,
@@ -873,7 +883,8 @@ class ExportChapterPdf
   def quota_geo_description(measures)
     measures.map do |measure|
       if @uktt.response.included
-        @uktt.response.included.select{|obj| obj.id == measure.relationships.geographical_area.data.id}.first.attributes.description
+        geos = @uktt.response.included.select{|obj| obj.id == measure.relationships.geographical_area.data.id}
+        geos.first.attributes.description unless geos.first.nil?
       end
     end.uniq.join(', ')
   end
@@ -1070,7 +1081,7 @@ class ExportChapterPdf
 
       while commodity_ids.length > 0
         prs_array << [
-          quota_commodities(commodity_ids.shift(56)),
+          quota_commodities(commodity_ids.shift(prs_array.length == 2 ? 46 : 56)),
           pr[:measures].attributes.import ? "Import" : "Export", # Import/Export
           pr[:description], # Description, was Measure Type Code
           pr[:requirements].join("<br/><br/>"), # Requirements, was Measure Group Code
