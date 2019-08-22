@@ -346,6 +346,14 @@ class ExportChapterPdf
     data_normalized
   end
 
+  def strip_tags(text)
+    return if text.nil?
+
+    noko = Nokogiri::HTML(text)
+    noko.css('span', 'abbr').each { |node| node.replace(node.children) }
+    noko.content
+  end
+
   def render_html_table(html)
     html_string = "<table>#{html.gsub("\r\n", '')}</table>"
     table(html_table_data(html_string), cell_style: {
@@ -429,14 +437,15 @@ class ExportChapterPdf
         conditions = v2_commodity.included.select{|obj| obj.type = "measure_condition" && conditions_ids.include?(obj.id) }
         conditions.each do |condition|
           unless condition.nil?
+            doc_code = condition.attributes.document_code
             document_codes << condition.attributes.document_code 
-            requirements << condition.attributes.requirement
+            requirements << "#{condition.attributes.condition_code}: #{strip_tags(condition.attributes.requirement)}#{" (#{doc_code})" unless doc_code.to_s.empty?}" unless condition.attributes.requirement.nil?
           end
         end
         @prs[id] = {
           measures: measure,
           commodities: [v2_commodity.data.attributes.goods_nomenclature_item_id],
-          description: desc,
+          description: "#{desc} (#{id})",
           conditions: document_codes.reject(&:empty?),
           requirements: requirements.reject(&:nil?),
         }
@@ -655,7 +664,7 @@ class ExportChapterPdf
 
   # copied from backend/app/models/measure_type.rb:41
   def measure_type_excise?(measure_type)
-    measure_type.attributes.measure_type_series_id == 'Q'
+    measure_type&.attributes&.measure_type_series_id == 'Q'
   end
 
   def measure_type_tax_code(measure_type)
@@ -663,7 +672,7 @@ class ExportChapterPdf
   end
 
   def measure_type_suspension?(measure_type)
-    measure_type.attributes.description =~ /suspension/
+    measure_type&.attributes&.description =~ /suspension/
   end
 
   def specific_provisions(v2_commodity)
@@ -779,7 +788,8 @@ class ExportChapterPdf
   def tariff_quotas(chapter = @chapter)
     cell_style = {
       padding: 0,
-      borders: []
+      borders: [],
+      inline_format: true
     }
     table_opts = {
       column_widths: quota_table_column_widths,
@@ -789,28 +799,20 @@ class ExportChapterPdf
     quotas_array = quota_header_row
     
     @quotas.each do |measure_id, quota|
-      # measure = data[:measures] ? data[:measures][0] : nil
-      # quotas_array << [
-      #   quota_commodities(data[:commodities]),  # Commodity </font>, list of codes, 1 per line, with comma
-      #   quota_description(data[:descriptions]), # Description
-      #   quota_geo_description(measure),         # Country of origin, e.g. GATT, NCC, others, Israel, etc.
-      #   quota_order_no(measure),                # Tariff Quota Order No.
-      #   quota_rate(measure),                    # Quota rate
-      #   quota_period(quota_order),              # Quota period, date range
-      #   quota_units(quota_order),               # Quota units, e.g., pieces, kg, number
-      #   quota_docs(measure)                     # Documentary evidence required
-      # ]
+      commodity_ids = quota[:commodities].uniq
 
-      quotas_array << [
-        quota_commodities(quota[:commodities]),
-        quota_description(quota[:descriptions]),
-        quota_geo_description(quota[:measures]),
-        measure_id,
-        quota_rate(quota[:duties]),
-        quota_period(quota[:measures]),
-        quota_units(quota[:definitions]),
-        quota_docs(quota[:footnotes])
-      ]
+      while commodity_ids.length > 0
+        quotas_array << [
+          quota_commodities(commodity_ids.shift(quotas_array.length == 2 ? 42 : 56)),
+          quota_description(quota[:descriptions]),
+          quota_geo_description(quota[:measures]),
+          measure_id,
+          quota_rate(quota[:duties]),
+          quota_period(quota[:measures]),
+          quota_units(quota[:definitions]),
+          quota_docs(quota[:footnotes])
+        ]
+      end
     end
 
     unless quotas_array.length <= 2
@@ -881,7 +883,8 @@ class ExportChapterPdf
   def quota_geo_description(measures)
     measures.map do |measure|
       if @uktt.response.included
-        @uktt.response.included.select{|obj| obj.id == measure.relationships.geographical_area.data.id}.first.attributes.description
+        geos = @uktt.response.included.select{|obj| obj.id == measure.relationships.geographical_area.data.id}
+        geos.first.attributes.description unless geos.first.nil?
       end
     end.uniq.join(', ')
   end
@@ -1078,7 +1081,7 @@ class ExportChapterPdf
 
       while commodity_ids.length > 0
         prs_array << [
-          quota_commodities(commodity_ids.shift(56)),
+          quota_commodities(commodity_ids.shift(prs_array.length == 2 ? 46 : 56)),
           pr[:measures].attributes.import ? "Import" : "Export", # Import/Export
           pr[:description], # Description, was Measure Type Code
           pr[:requirements].join("<br/><br/>"), # Requirements, was Measure Group Code
