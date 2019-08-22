@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    uktt (0.2.4)
+    uktt (0.2.5)
       faraday
       nokogiri
       prawn
