@@ -639,7 +639,9 @@ class ExportChapterPdf
     if commodity.number_indents.to_i <= 1 #|| !commodity.declarable
       format_text("<b>#{description}</b><font size='11'><sup><#{footnote_references}</sup></font>", leading)
     elsif commodity.declarable
-      hanging_indent(["<i>#{indents}<i>", "<i>#{description}</i><font size='11'><sup>#{footnote_references}</sup></font>"], opts, nil, leading)
+      hanging_indent(["<i>#{indents}<i>", "<i><u>#{description}</u></i><font size='11'><sup>#{footnote_references}</sup></font>"], opts, nil, leading)
+    elsif commodity.number_indents.to_i == 2
+      hanging_indent([indents, "<b>#{description}</b><font size='11'><sup>#{footnote_references}</sup></font>"], opts, nil, leading)
     else
       hanging_indent([indents, "#{description}<font size='11'><sup>#{footnote_references}</sup></font>"], opts, nil, leading)
     end
