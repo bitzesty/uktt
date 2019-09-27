@@ -16,6 +16,9 @@ class ExportChapterPdf
   P_AND_R_MEASURE_TYPES_EXIM   = %w[760 719].freeze
   P_AND_R_MEASURE_TYPES = (P_AND_R_MEASURE_TYPES_IMPORT + P_AND_R_MEASURE_TYPES_EXIM + P_AND_R_MEASURE_TYPES_EXPORT).freeze
 
+  CAP_LICENCE_KEY = 'CAP_LICENCE'
+  CAP_REFERENCE_TEXT = 'CAP licencing may apply. Specific licence requirements for this commodity can be obtained from the Rural Payment Agency website (www.rpa.gov.uk) under RPA Schemes.'
+
   def initialize(opts = {})
     @opts = opts
     @chapter_id = opts[:chapter_id]
@@ -34,7 +37,7 @@ class ExportChapterPdf
 
     @cw = table_column_widths
     @footnotes = {}
-    @footnotes_lookup = {}
+    @references_lookup = {}
     @quotas = {}
     @prs = {}
     @pages_headings = {}
@@ -384,8 +387,11 @@ class ExportChapterPdf
           text: "#{f.code}-#{render_footnote(f.description)}",
           refs: [@uktt.response.data.id]
         }
-        unless @footnotes_lookup[f.code]
-          @footnotes_lookup[f.code] = @footnotes_lookup.length + 1
+        unless @references_lookup[footnote_reference_key(f.code)]
+          @references_lookup[footnote_reference_key(f.code)] = {
+            index: @references_lookup.length + 1,
+            text: replace_html(@footnotes[f.code][:text].delete('|'))
+          }
         end
       end
     end
@@ -614,7 +620,7 @@ class ExportChapterPdf
     footnotes_array = []
     @footnotes.each_pair do |k, v|
       if @uktt.response.data && v[:refs].include?(@uktt.response.data.id) && k[0..1] != 'CD'
-        footnotes_array << @footnotes_lookup[k]
+        footnotes_array << @references_lookup[footnote_reference_key(k)][:index]
       end
     end
 
@@ -677,6 +683,12 @@ class ExportChapterPdf
     measure_type&.attributes&.description =~ /suspension/
   end
 
+  def measure_conditions_has_cap_license?(measure_conditions)
+    measure_conditions.any? do |measure_condition|
+      measure_condition&.attributes&.document_code == 'L001'
+    end
+  end
+
   def specific_provisions(v2_commodity)
     return '' unless v2_commodity.data.attributes.declarable
 
@@ -690,10 +702,26 @@ class ExportChapterPdf
     str = excise_codes.length > 0 ? "EXCISE (#{excise_codes.join(', ')})" : ''
     delimiter = str.length > 0 ? "\n" : ''
 
-    str = str + (measure_types.select(&method(:measure_type_suspension?)).length > 0 ? delimiter + 'S' : '')
+    str += measure_types.select(&method(:measure_type_suspension?)).length > 0 ? delimiter + 'S' : ''
     delimiter = str.length > 0 ? "\n" : ''
 
-    str + (measures.select(&method(:measure_is_quota)).length > 0 ? delimiter + 'TQ' : '')
+    str += (measures.select(&method(:measure_is_quota)).length > 0 ? delimiter + 'TQ' : '')
+    delimiter = str.length > 0 ? "\n" : ''
+
+    measure_conditions = measures.map do |measure|
+      v2_commodity.included.find { |obj| measure.relationships.measure_conditions.data.map(&:id).include?(obj.id) && obj.type == 'measure_condition' }
+    end.compact.uniq
+
+    if measure_conditions_has_cap_license?(measure_conditions)
+      unless @references_lookup[CAP_LICENCE_KEY]
+        @references_lookup[CAP_LICENCE_KEY] = {
+          index: @references_lookup.length + 1,
+          text: CAP_REFERENCE_TEXT
+        }
+      end
+      str += delimiter + "CAP Lic <font size='11'><sup> [#{@references_lookup[CAP_LICENCE_KEY][:index]}]</sup></font>"
+    end
+    format_text(str, 0)
   end
 
   def units_of_quantity_list
@@ -740,7 +768,7 @@ class ExportChapterPdf
       x_ids = t.relationships.excluded_countries.data.map(&:id)
       excluded = @uktt.response.included.select{|obj| x_ids.include? obj.id}
 
-      footnotes_string = footnotes.map(&:id).map{|fid| "<sup><font size='9'>[#{@footnotes_lookup[fid]}]</font></sup>"}.join(' ')
+      footnotes_string = footnotes.map(&:id).map{|fid| "<sup><font size='9'>[#{@references_lookup.dig(footnote_reference_key(fid), :index)}]</font></sup>"}.join(' ')
       excluded_string = excluded.map(&:id).map{|xid| " (Excluding #{xid})"}.join(' ')
       duty_string = clean_rates(duty.join)
       s << "#{geo}#{excluded_string}-#{duty_string}#{footnotes_string}"
@@ -768,11 +796,8 @@ class ExportChapterPdf
       width: @printable_width,
       cell_style: cell_style
     }
-    notes_array = []
-    @footnotes.each_pair do |k, v|
-      text = v[:text]
-      index = @footnotes_lookup[k]
-      notes_array << ["( #{index} )", replace_html(text.delete('|'))]
+    notes_array = @references_lookup.map do |_, reference|
+      [ "( #{reference[:index]} )", reference[:text] ]
     end
 
     table notes_array, table_opts do |t|
@@ -1157,4 +1182,9 @@ class ExportChapterPdf
     # 'GSP (R 01/2501) - General arrangements'.to_sym => 'GSP',
     # 'Central America'.to_sym => 'CEN-AM',
   }.freeze
+  private
+
+  def footnote_reference_key(footnote_code)
+    "FOOTNOTE-#{footnote_code}"
+  end
 end
