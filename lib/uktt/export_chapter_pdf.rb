@@ -15,6 +15,7 @@ class ExportChapterPdf
   P_AND_R_MEASURE_TYPES_EXPORT = %w[278 706 740 749 467 473 476 478 479 708 709 715 716 717 718 725 735 751].freeze
   P_AND_R_MEASURE_TYPES_EXIM   = %w[760 719].freeze
   P_AND_R_MEASURE_TYPES = (P_AND_R_MEASURE_TYPES_IMPORT + P_AND_R_MEASURE_TYPES_EXIM + P_AND_R_MEASURE_TYPES_EXPORT).freeze
+  ANTIDUMPING_MEASURE_TYPES = ().freeze
 
   CAP_LICENCE_KEY = 'CAP_LICENCE'
   CAP_REFERENCE_TEXT = 'CAP licencing may apply. Specific licence requirements for this commodity can be obtained from the Rural Payment Agency website (www.rpa.gov.uk) under RPA Schemes.'
@@ -40,6 +41,7 @@ class ExportChapterPdf
     @references_lookup = {}
     @quotas = {}
     @prs = {}
+    @anti_dumpings = {}
     @pages_headings = {}
 
     set_fonts
@@ -116,6 +118,8 @@ class ExportChapterPdf
     tariff_quotas
 
     prohibitions_and_restrictions
+
+    anti_dumpings
   end
 
   def page_footer
@@ -459,6 +463,56 @@ class ExportChapterPdf
     end
   end
 
+  def update_anti_dumpings(v2_commodity)
+    anti_dumping_measures(v2_commodity).each do |measure|
+      description = ''
+      delimiter = ''
+
+      duty_expression_id = measure.relationships.duty_expression&.data&.id
+      if duty_expression_id
+        duty_expression = find_duty_expression(duty_expression_id)
+        unless duty_expression&.attributes&.base == ''
+          measure_type = find_measure_type(measure.relationships.measure_type&.data&.id)
+          description += clean_rates(duty_expression&.attributes&.base) + '<br>' + measure_type&.attributes&.description
+          delimiter = '<br>'
+        end
+      end
+
+      additional_code_id = measure.relationships.additional_code&.data&.id
+      if additional_code_id
+        additional_code = find_additional_code(additional_code_id)
+        description += delimiter + additional_code.attributes.formatted_description
+      end
+
+      unless description == ''
+        commodity_item_id = v2_commodity.data.attributes.goods_nomenclature_item_id
+        geographical_area_id = measure.relationships.geographical_area.data.id
+        @anti_dumpings[commodity_item_id] ||= {}
+        @anti_dumpings[commodity_item_id][geographical_area_id] ||= {}
+        @anti_dumpings[commodity_item_id][geographical_area_id][additional_code&.attributes&.code || ''] ||= description
+      end
+    end
+  end
+
+  def find_measure_type(measure_type_id)
+    find_included_object(measure_type_id, 'measure_type')
+  end
+
+  def find_duty_expression(duty_expression_id)
+    find_included_object(duty_expression_id, 'duty_expression')
+  end
+
+  def find_additional_code(additional_code_id)
+    find_included_object(additional_code_id, 'additional_code')
+  end
+
+  def find_included_object(object_id, object_type)
+    return nil unless object_id || object_type
+    @uktt.response.included.find do |obj|
+      obj.id == object_id && obj.type == object_type
+    end
+  end
+
   def commodities_table
     table commodity_table_data, column_widths: @cw do |t|
       t.cells.border_width = 0.25
@@ -489,6 +543,7 @@ class ExportChapterPdf
         update_footnotes(v2_heading)
         update_quotas(v2_heading, heading)
         update_prs(v2_heading)
+        update_anti_dumpings(v2_heading)
       end
 
       result << heading_row_head(v2_heading)
@@ -526,6 +581,8 @@ class ExportChapterPdf
               update_quotas(v2_commodity, heading)
 
               update_prs(v2_commodity)
+
+              update_anti_dumpings(v2_commodity)
             else
               result << commodity_row_subhead(c)
             end
@@ -673,6 +730,16 @@ class ExportChapterPdf
   # copied from backend/app/models/measure_type.rb:41
   def measure_type_excise?(measure_type)
     measure_type&.attributes&.measure_type_series_id == 'Q'
+  end
+
+  def measure_type_anti_dumping?(measure_type)
+    measure_type&.attributes&.measure_type_series_id == 'D'
+  end
+
+  def anti_dumping_measure_type_ids
+    @uktt.response.included.select do |obj|
+      obj.type == 'measure_type' && measure_type_anti_dumping?(obj)
+    end.map(&:id)
   end
 
   def measure_type_tax_code(measure_type)
@@ -1053,6 +1120,12 @@ class ExportChapterPdf
     column_ratios.map { |n| n * multiplier }
   end
 
+  def anti_dumping_table_column_widths
+    column_ratios = [1, 1, 1, 4]
+    multiplier = 741.89 / column_ratios.sum
+    column_ratios.map { |n| n * multiplier }
+  end
+
   def clean_rates(raw)
     raw.gsub(/^0.00 %/, 'Free')
        .gsub(' EUR ', ' € ')
@@ -1083,6 +1156,11 @@ class ExportChapterPdf
     # c = Uktt::Commodity.new(commodity_id: '3403910000')
     # v2 = c.retrieve
     v2_commodity.included.select{|obj| obj.type == 'measure' && measure_is_pr(obj)}
+  end
+
+  def anti_dumping_measures(v2_commodity)
+    anti_dumping_ids = anti_dumping_measure_type_ids
+    v2_commodity.included.select{ |obj| obj.type == 'measure' && anti_dumping_ids.include?(obj.relationships.measure_type.data.id) }
   end
 
   def measure_is_pr(measure)
@@ -1162,6 +1240,91 @@ class ExportChapterPdf
         # format_text('<b>Ex-heading Indicator</b>')
       ],
       (1..5).to_a
+    ]
+  end
+
+  def anti_dumpings
+    return if @anti_dumpings.empty?
+
+    # group commodities by goods nomenclature item id and additional codes
+    grouped = @anti_dumpings.group_by do |_, value|
+      value.keys.sort.map do |k|
+        "#{k.to_s}_#{value[k].keys.sort.join('_')}"
+      end.join('_')
+    end.map do |_, value|
+      { value.map(&:first) => value.first.last }
+    end.inject({}, &:merge)
+
+    output = anti_dumping_header_row
+    # represent each line from grouped data as 3+ rows - 1st goods nomenclatures, 2nd geo area id + 1st info row, 3rd and next - rest of the rows with info
+    output += grouped.map do |goods_nomenclature_item_ids, data|
+      [
+        # 1st row
+        [goods_nomenclature_item_ids.join("<br>"), "", "", ""],
+      ].concat(
+        data.map do |geographical_area_id, additional_codes|
+          [
+            # 2nd row
+            ["", additional_codes.first.first, { content: geographical_area_id, rowspan: additional_codes.length }, additional_codes.first.last]
+          ].concat(
+            # 3rd and next
+            additional_codes.drop(1).map do |additional_code_id, description|
+              ["", additional_code_id, description]
+            end
+          )
+        end.flatten(1)
+      )
+    end.flatten(1)
+
+    start_new_page
+
+    font_size(19) do
+      text "Chapter #{@chapter.data.attributes.goods_nomenclature_item_id[0..1].gsub(/^0/, '')}#{Prawn::Text::NBSP * 4}<b>Additional Information</b>",
+        inline_format: true
+    end
+
+    font_size(13) do
+      pad_bottom(13) do
+        text '<b>Anti-dumping duties</b>',
+          inline_format: true
+      end
+    end
+
+    cell_style = {
+      padding: 0,
+      borders: [],
+      inline_format: true
+    }
+    table_opts = {
+      column_widths: anti_dumping_table_column_widths,
+      width: @printable_width,
+      cell_style: cell_style
+    }
+
+    table output, table_opts do |t|
+      t.cells.border_width = 0.25
+      t.cells.padding_top = 4
+      t.cells.padding_bottom = 6
+      t.cells.padding_right = 9
+      t.row(0).border_width = 1
+      t.row(0).borders = [:top]
+      t.row(1).borders = [:bottom]
+      t.row(0).padding_top = 0
+      t.row(0).padding_bottom = 0
+      t.row(1).padding_top = 0
+      t.row(1).padding_bottom = 2
+    end
+  end
+
+  def anti_dumping_header_row
+    [
+      [
+        format_text('<b>Commodity Code</b>'),
+        format_text('<b>Additional Code</b>'),
+        format_text('<b>Country of Origin</b>'),
+        format_text('<b>Description/Rate of Duty/Additional Information</b>'),
+      ],
+      (1..4).to_a
     ]
   end
 
