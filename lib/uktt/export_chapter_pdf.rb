@@ -1260,17 +1260,19 @@ class ExportChapterPdf
     output += grouped.map do |goods_nomenclature_item_ids, data|
       [
         # 1st row
-        [goods_nomenclature_item_ids.join("<br>"), "", "", ""],
+        [quota_commodities(goods_nomenclature_item_ids), "", "", ""],
       ].concat(
         data.map do |geographical_area_id, additional_codes|
           [
             # 2nd row
-            ["", additional_codes.first.first, { content: geographical_area_id, rowspan: additional_codes.length }, additional_codes.first.last]
+            ["", additional_codes.first.first, geographical_area_id, additional_codes.first.last]
           ].concat(
-            # 3rd and next
+            # 3rd and next, show additional_code_id only on first line only
             additional_codes.drop(1).map do |additional_code_id, description|
-              ["", additional_code_id, description]
-            end
+              description.split(/<br\/?>/).map do |desc|
+                ["", description.index(desc) === 0 ? additional_code_id : "", "", desc]
+              end
+            end.flatten(1)
           )
         end.flatten(1)
       )
@@ -1303,8 +1305,6 @@ class ExportChapterPdf
 
     table output, table_opts do |t|
       t.cells.border_width = 0.25
-      t.cells.padding_top = 4
-      t.cells.padding_bottom = 6
       t.cells.padding_right = 9
       t.row(0).border_width = 1
       t.row(0).borders = [:top]
@@ -1313,6 +1313,9 @@ class ExportChapterPdf
       t.row(0).padding_bottom = 0
       t.row(1).padding_top = 0
       t.row(1).padding_bottom = 2
+      output[2..-1].each_with_index do |line, i|
+        t.row(i + 2).padding_top = "#{line[0]}#{line[1]}#{line[2]}" == '' ? 0 : 6
+      end
     end
   end
 
