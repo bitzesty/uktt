@@ -50,7 +50,7 @@ class ExportChapterPdf
     )
     @cw = table_column_widths
 
-    @currency = (SUPPORTED_CURRENCIES.keys & [@opts[:currency]]).first.upcase
+    @currency = set_currency
     @currency_exchange_rate = fetch_exchange_rate
     
     @footnotes = {}
@@ -92,6 +92,15 @@ class ExportChapterPdf
     end
   end
 
+  def set_currency
+    cur = (SUPPORTED_CURRENCIES.keys & [@opts[:currency]]).first
+    if cur = (SUPPORTED_CURRENCIES.keys & [@opts[:currency]]).first
+      return cur.upcase
+    else
+      raise StandardError.new "`#{@opts[:currency]}` is not a supported currency. SUPPORTED_CURRENCIES = [#{SUPPORTED_CURRENCIES.keys.join(', ')}]"
+    end
+  end
+
   def set_fonts
     font_families.update('OpenSans' => {
                            normal: 'vendor/assets/Open_Sans/OpenSans-Regular.ttf',
@@ -114,8 +123,6 @@ class ExportChapterPdf
 
     return 1.0 if currency === Uktt::PARENT_CURRENCY
 
-    return 1.0 unless SUPPORTED_CURRENCIES.keys.include?(currency)
-    
     response = ENV.fetch("MX_RATE_EUR_#{currency}") do |_missing_name|
       if currency === 'GBP'
         Uktt::MonetaryExchangeRate.new.latest(currency)
@@ -126,7 +133,7 @@ class ExportChapterPdf
 
     return response if response > 0.0
 
-    return 1.0
+    raise StandardError.new "Currency error. response=#{response.inspect}"
   end
 
   def test
