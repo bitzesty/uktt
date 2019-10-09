@@ -17,11 +17,11 @@ class ExportChapterPdf
   P_AND_R_MEASURE_TYPES = (P_AND_R_MEASURE_TYPES_IMPORT + P_AND_R_MEASURE_TYPES_EXIM + P_AND_R_MEASURE_TYPES_EXPORT).freeze
   ANTIDUMPING_MEASURE_TYPES = ().freeze
   SUPPORTED_CURRENCIES = {
-    'BGN' => 'лв', 
+    'BGN' => 'лв',
     'CZK' => 'Kč',
     'DKK' => 'kr.',
     'EUR' => '€', 
-    'GBP' => '£', 
+    'GBP' => '£',
     'HRK' => 'kn',
     'HUF' => 'Ft',
     'PLN' => 'zł',
@@ -112,12 +112,16 @@ class ExportChapterPdf
   def fetch_exchange_rate(currency = @currency)
     return 1.0 unless currency
 
-    return 1.0 if currency === 'EUR'
+    return 1.0 if currency === Uktt::PARENT_CURRENCY
 
     return 1.0 unless SUPPORTED_CURRENCIES.keys.include?(currency)
     
     response = ENV.fetch("MX_RATE_EUR_#{currency}") do |_missing_name|
-      Uktt::MonetaryExchangeRate.new(currency: currency).latest
+      if currency === 'GBP'
+        Uktt::MonetaryExchangeRate.new.latest(currency)
+      else
+        raise StandardError.new "Non-GBP currency exchange rates are not available via API and must be manually set with an environment variable, e.g., 'MX_RATE_EUR_#{currency}'"
+      end
     end.to_f
 
     return response if response > 0.0

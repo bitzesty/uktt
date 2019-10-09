@@ -9,7 +9,7 @@ module Uktt
     def initialize(opts = {})
       @chapter_id = opts[:chapter_id] || nil
       @filepath = opts[:filepath] || "#{Dir.pwd}/#{@chapter_id || 'cover'}.pdf"
-      @currency = opts[:currency] || 'EURO'
+      @currency = opts[:currency] || Uktt::PARENT_CURRENCY
       Uktt.configure(opts)
       @config = Uktt.config
     end

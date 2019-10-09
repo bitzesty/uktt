@@ -7,14 +7,13 @@ module Uktt
       @monetary_exchange_rate_id = opts[:monetary_exchange_rate_id] || nil
       Uktt.configure(opts)
       @config = Uktt.config
-      @response = nil
     end
 
     def retrieve_all
       fetch "#{M_X_RATE}.json"
     end
 
-    def latest(currency = 'GBP')
+    def latest(currency)
       retrieve_all unless @response
 
       @response.select{ |obj| obj.child_monetary_unit_code == currency.upcase }
