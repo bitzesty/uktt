@@ -16,6 +16,19 @@ class ExportChapterPdf
   P_AND_R_MEASURE_TYPES_EXIM   = %w[760 719].freeze
   P_AND_R_MEASURE_TYPES = (P_AND_R_MEASURE_TYPES_IMPORT + P_AND_R_MEASURE_TYPES_EXIM + P_AND_R_MEASURE_TYPES_EXPORT).freeze
   ANTIDUMPING_MEASURE_TYPES = ().freeze
+  SUPPORTED_CURRENCIES = {
+    'BGN' => 'лв', 
+    'CZK' => 'Kč',
+    'DKK' => 'kr.',
+    'EUR' => '€', 
+    'GBP' => '£', 
+    'HRK' => 'kn',
+    'HUF' => 'Ft',
+    'PLN' => 'zł',
+    'RON' => 'lei',
+    'SEK' => 'kr'
+  }.freeze
+  CURRENCY_REGEX = /([0-9]+\.?[0-9]*)\s€/.freeze
 
   CAP_LICENCE_KEY = 'CAP_LICENCE'
   CAP_REFERENCE_TEXT = 'CAP licencing may apply. Specific licence requirements for this commodity can be obtained from the Rural Payment Agency website (www.rpa.gov.uk) under RPA Schemes.'
@@ -35,8 +48,11 @@ class ExportChapterPdf
       margin: @margin,
       page_layout: :landscape
     )
-
     @cw = table_column_widths
+
+    @currency = (SUPPORTED_CURRENCIES.keys & [@opts[:currency]]).first.upcase
+    @currency_exchange_rate = fetch_exchange_rate
+    
     @footnotes = {}
     @references_lookup = {}
     @quotas = {}
@@ -91,6 +107,22 @@ class ExportChapterPdf
                          })
     font 'OpenSans'
     font_size @base_table_font_size
+  end
+
+  def fetch_exchange_rate(currency = @currency)
+    return 1.0 unless currency
+
+    return 1.0 if currency === 'EUR'
+
+    return 1.0 unless SUPPORTED_CURRENCIES.keys.include?(currency)
+    
+    response = ENV.fetch("MX_RATE_EUR_#{currency}") do |_missing_name|
+      Uktt::MonetaryExchangeRate.new(currency: currency).latest
+    end.to_f
+
+    return response if response > 0.0
+
+    return 1.0
   end
 
   def test
@@ -1127,11 +1159,17 @@ class ExportChapterPdf
   end
 
   def clean_rates(raw)
-    raw.gsub(/^0.00 %/, 'Free')
+    rate = raw.gsub(/^0.00 %/, 'Free')
        .gsub(' EUR ', ' € ')
        .gsub(' / ', '/')
        .gsub(/(\.[0-9]{1})0 /, '\1 ')
        .gsub(/([0-9]{1})\.0 /, '\1 ')
+
+    CURRENCY_REGEX.match(rate) do |m|
+      rate = rate.gsub(m[0], "#{convert_currency(m[1])} #{currency_symbol} ")
+    end
+
+    rate
   end
 
   def commodity_measures(commodity)
@@ -1329,6 +1367,16 @@ class ExportChapterPdf
       ],
       (1..4).to_a
     ]
+  end
+
+  def convert_currency(amount, precision = 1)
+    (amount.to_f * @currency_exchange_rate).round(precision)
+  end
+
+  def currency_symbol
+    return '€' unless @currency
+
+    SUPPORTED_CURRENCIES[@currency]
   end
 
   UNIT_ABBREVIATIONS = {

@@ -31,7 +31,7 @@ module Uktt
               version: Uktt::Http.spec_version, 
               debug: false,
               return_json: false,
-              currency: "EURO"
+              currency: 'EUR'
             }
 
   @valid_config_keys = @config.keys
