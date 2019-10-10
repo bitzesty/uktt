@@ -187,6 +187,41 @@ Set `chapter_id` and optional `filepath` with a hash.
 > p.make_chapter
 ```
 
+#### Currencies in PDF
+
+The default currency for PDFs is the Euro. The PDF may be produced in certain other supported currencies. if one or more supported currencies is specified, all currency amounts in the PDF will be converted from EUR (the "parent" currency) into the specified child currency.
+
+The exchange rates for each supported currency must be specified in one of the following ways:
+1.  For any supported currency, set a `MX_RATE_EUR_***` environment variable, where `***` is the three-letter currency code
+2.  For GBP, the gem will attempt to look up the EUR-GBP exchange rate using the Tariff API
+3.  EUR is the default currency if no currency is specified
+
+The Tariff PDF will be produced in any supported currency specified in the options:
+```ruby
+> Uktt::Pdf.new(chapter_id: '01', filepath: './Chapter-01-GBP.pdf', host:'https://www.trade-tariff.service.gov.uk/api', currency:'GBP').make_chapter
+```
+
+** In the backend (where we run the PDF gem), the exchange rate is fetched from the db and then set as an ENV variable before the chapters are produced:
+```ruby
+ENV["MX_RATE_EUR_#{currency}"] ||= MonetaryExchangeRate.latest(currency).to_s
+```
+
+The supported currencies are:
+```ruby
+SUPPORTED_CURRENCIES = {
+    'BGN' => 'лв',
+    'CZK' => 'Kč',
+    'DKK' => 'kr.',
+    'EUR' => '€', 
+    'GBP' => '£',
+    'HRK' => 'kn',
+    'HUF' => 'Ft',
+    'PLN' => 'zł',
+    'RON' => 'lei',
+    'SEK' => 'kr'
+  }
+```
+
 ## Command line interface
 
 This gem provides a command-line interface (CLI).

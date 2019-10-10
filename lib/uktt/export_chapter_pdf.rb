@@ -16,6 +16,19 @@ class ExportChapterPdf
   P_AND_R_MEASURE_TYPES_EXIM   = %w[760 719].freeze
   P_AND_R_MEASURE_TYPES = (P_AND_R_MEASURE_TYPES_IMPORT + P_AND_R_MEASURE_TYPES_EXIM + P_AND_R_MEASURE_TYPES_EXPORT).freeze
   ANTIDUMPING_MEASURE_TYPES = ().freeze
+  SUPPORTED_CURRENCIES = {
+    'BGN' => 'лв',
+    'CZK' => 'Kč',
+    'DKK' => 'kr.',
+    'EUR' => '€', 
+    'GBP' => '£',
+    'HRK' => 'kn',
+    'HUF' => 'Ft',
+    'PLN' => 'zł',
+    'RON' => 'lei',
+    'SEK' => 'kr'
+  }.freeze
+  CURRENCY_REGEX = /([0-9]+\.?[0-9]*)\s€/.freeze
 
   CAP_LICENCE_KEY = 'CAP_LICENCE'
   CAP_REFERENCE_TEXT = 'CAP licencing may apply. Specific licence requirements for this commodity can be obtained from the Rural Payment Agency website (www.rpa.gov.uk) under RPA Schemes.'
@@ -35,8 +48,11 @@ class ExportChapterPdf
       margin: @margin,
       page_layout: :landscape
     )
-
     @cw = table_column_widths
+
+    @currency = set_currency
+    @currency_exchange_rate = fetch_exchange_rate
+    
     @footnotes = {}
     @references_lookup = {}
     @quotas = {}
@@ -76,6 +92,15 @@ class ExportChapterPdf
     end
   end
 
+  def set_currency
+    cur = (SUPPORTED_CURRENCIES.keys & [@opts[:currency]]).first
+    if cur = (SUPPORTED_CURRENCIES.keys & [@opts[:currency]]).first
+      return cur.upcase
+    else
+      raise StandardError.new "`#{@opts[:currency]}` is not a supported currency. SUPPORTED_CURRENCIES = [#{SUPPORTED_CURRENCIES.keys.join(', ')}]"
+    end
+  end
+
   def set_fonts
     font_families.update('OpenSans' => {
                            normal: 'vendor/assets/Open_Sans/OpenSans-Regular.ttf',
@@ -91,6 +116,24 @@ class ExportChapterPdf
                          })
     font 'OpenSans'
     font_size @base_table_font_size
+  end
+
+  def fetch_exchange_rate(currency = @currency)
+    return 1.0 unless currency
+
+    return 1.0 if currency === Uktt::PARENT_CURRENCY
+
+    response = ENV.fetch("MX_RATE_EUR_#{currency}") do |_missing_name|
+      if currency === 'GBP'
+        Uktt::MonetaryExchangeRate.new.latest(currency)
+      else
+        raise StandardError.new "Non-GBP currency exchange rates are not available via API and must be manually set with an environment variable, e.g., 'MX_RATE_EUR_#{currency}'"
+      end
+    end.to_f
+
+    return response if response > 0.0
+
+    raise StandardError.new "Currency error. response=#{response.inspect}"
   end
 
   def test
@@ -1127,11 +1170,17 @@ class ExportChapterPdf
   end
 
   def clean_rates(raw)
-    raw.gsub(/^0.00 %/, 'Free')
+    rate = raw.gsub(/^0.00 %/, 'Free')
        .gsub(' EUR ', ' € ')
        .gsub(' / ', '/')
        .gsub(/(\.[0-9]{1})0 /, '\1 ')
        .gsub(/([0-9]{1})\.0 /, '\1 ')
+
+    CURRENCY_REGEX.match(rate) do |m|
+      rate = rate.gsub(m[0], "#{convert_currency(m[1])} #{currency_symbol} ")
+    end
+
+    rate
   end
 
   def commodity_measures(commodity)
@@ -1329,6 +1378,16 @@ class ExportChapterPdf
       ],
       (1..4).to_a
     ]
+  end
+
+  def convert_currency(amount, precision = 1)
+    (amount.to_f * @currency_exchange_rate).round(precision)
+  end
+
+  def currency_symbol
+    return '€' unless @currency
+
+    SUPPORTED_CURRENCIES[@currency]
   end
 
   UNIT_ABBREVIATIONS = {

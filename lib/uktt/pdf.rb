@@ -9,6 +9,7 @@ module Uktt
     def initialize(opts = {})
       @chapter_id = opts[:chapter_id] || nil
       @filepath = opts[:filepath] || "#{Dir.pwd}/#{@chapter_id || 'cover'}.pdf"
+      @currency = opts[:currency] || Uktt::PARENT_CURRENCY
       Uktt.configure(opts)
       @config = Uktt.config
     end
@@ -24,6 +25,7 @@ module Uktt
       Uktt.configure merged_opts
       @chapter_id = merged_opts[:chapter_id] || @chapter_id
       @filepath = merged_opts[:filepath] || @filepath
+      @currency = merged_opts[:currency] || @currency
       @config = Uktt.config
     end
 

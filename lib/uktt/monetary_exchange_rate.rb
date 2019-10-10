@@ -1,7 +1,7 @@
 module Uktt
   # A MonetaryExchangeRate object for dealing with an API resource
   class MonetaryExchangeRate
-    attr_accessor :monetary_exchange_rate_id, :config
+    attr_accessor :monetary_exchange_rate_id, :config, :response
 
     def initialize(opts = {})
       @monetary_exchange_rate_id = opts[:monetary_exchange_rate_id] || nil
@@ -11,6 +11,16 @@ module Uktt
 
     def retrieve_all
       fetch "#{M_X_RATE}.json"
+    end
+
+    def latest(currency)
+      retrieve_all unless @response
+
+      @response.select{ |obj| obj.child_monetary_unit_code == currency.upcase }
+               .sort_by(&:validity_start_date)
+               .last
+               .exchange_rate
+               .to_f
     end
 
     def config=(new_opts = {})
@@ -23,7 +33,7 @@ module Uktt
     private
 
     def fetch(resource)
-      Uktt::Http.new(@config[:host], 
+      @response = Uktt::Http.new(@config[:host], 
                      @config[:version], 
                      @config[:debug])
       .retrieve(resource, 

@@ -22,6 +22,7 @@ module Uktt
   M_X_RATE =            'monetary_exchange_rates'.freeze
   GOODS_NOMENCLATURE =  'goods_nomenclatures'.freeze
   QUOTA =               'quotas'.freeze
+  PARENT_CURRENCY =     'EUR'.freeze
 
   class Error < StandardError; end
 
@@ -30,7 +31,8 @@ module Uktt
               host: Uktt::Http.api_host, 
               version: Uktt::Http.spec_version, 
               debug: false,
-              return_json: false
+              return_json: false,
+              currency: PARENT_CURRENCY
             }
 
   @valid_config_keys = @config.keys
