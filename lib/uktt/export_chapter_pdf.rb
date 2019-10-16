@@ -1309,21 +1309,31 @@ class ExportChapterPdf
     output += grouped.map do |goods_nomenclature_item_ids, data|
       [
         # 1st row
-        [quota_commodities(goods_nomenclature_item_ids), "", "", ""],
+        [ make_cell(quota_commodities(goods_nomenclature_item_ids), borders: []), make_cell("", borders: []), make_cell("", borders: []), make_cell("", borders: []) ],
       ].concat(
         data.map do |geographical_area_id, additional_codes|
           [
             # 2nd row
-            ["", additional_codes.first.first, geographical_area_id, additional_codes.first.last]
+            [ make_cell("", borders: []), make_cell(geographical_area_id, borders: []), make_cell(additional_codes.first.first, borders: []), make_cell(additional_codes.first.last, borders: []) ]
           ].concat(
             # 3rd and next, show additional_code_id only on first line only
             additional_codes.drop(1).map do |additional_code_id, description|
-              description.split(/<br\/?>/).map do |desc|
-                ["", description.index(desc) === 0 ? additional_code_id : "", "", desc]
+              description.split(/<br\/?>/).map do |description_line|
+                borders = description.index(description_line) === 0 ? [:top] : []
+                additional_code_text = description.index(description_line) === 0 ? additional_code_id : ""
+                [ make_cell("", borders: []), make_cell("", borders: []), make_cell(additional_code_text, borders: borders), make_cell(description_line, borders: borders) ]
               end
             end.flatten(1)
+          ).push([ make_cell("", borders: []),
+              make_cell("", { borders: %i[bottom] }),
+              make_cell("", { borders: %i[bottom] }),
+              make_cell("", { borders: %i[bottom] }) ]
           )
         end.flatten(1)
+      ).tap(&:pop).push([ make_cell("", { borders: %i[bottom] }),
+          make_cell("", { borders: %i[bottom] }),
+          make_cell("", { borders: %i[bottom] }),
+          make_cell("", { borders: %i[bottom] }) ]
       )
     end.flatten(1)
 
@@ -1343,7 +1353,6 @@ class ExportChapterPdf
 
     cell_style = {
       padding: 0,
-      borders: [],
       inline_format: true
     }
     table_opts = {
@@ -1372,8 +1381,8 @@ class ExportChapterPdf
     [
       [
         format_text('<b>Commodity Code</b>'),
-        format_text('<b>Additional Code</b>'),
         format_text('<b>Country of Origin</b>'),
+        format_text('<b>Additional Code</b>'),
         format_text('<b>Description/Rate of Duty/Additional Information</b>'),
       ],
       (1..4).to_a
