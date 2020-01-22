@@ -883,7 +883,7 @@ class ExportChapterPdf
       duty_string = clean_rates(duty.join, column: 6)
       s << "#{geo}#{excluded_string}-#{duty_string}#{footnotes_string}"
     end
-    { content: s.sort.join('; '), inline_format: true }
+    { content: s.sort.join(', '), inline_format: true }
   end
 
   def formatted_vat_rate_cell
