@@ -880,10 +880,10 @@ class ExportChapterPdf
 
       footnotes_string = footnotes.map(&:id).map{|fid| "<sup><font size='9'>[#{@references_lookup.dig(footnote_reference_key(fid), :index)}]</font></sup>"}.join(' ')
       excluded_string = excluded.map(&:id).map{|xid| " (Excluding #{xid})"}.join(' ')
-      duty_string = clean_rates(duty.join)
+      duty_string = clean_rates(duty.join, column: 6)
       s << "#{geo}#{excluded_string}-#{duty_string}#{footnotes_string}"
     end
-    {content: s.sort.join('; '), inline_format: true}
+    { content: s.sort.join('; '), inline_format: true }
   end
 
   def formatted_vat_rate_cell
@@ -1169,12 +1169,13 @@ class ExportChapterPdf
     column_ratios.map { |n| n * multiplier }
   end
 
-  def clean_rates(raw)
-    rate = raw.gsub(/^0.00 %/, 'Free')
-       .gsub(' EUR ', ' € ')
-       .gsub(' / ', '/')
-       .gsub(/(\.[0-9]{1})0 /, '\1 ')
-       .gsub(/([0-9]{1})\.0 /, '\1 ')
+  def clean_rates(raw, column: nil)
+    rate = raw.gsub(/^0.00 %/, 'Free') if column != 6
+
+    rate = rate.gsub(' EUR ', ' € ')
+               .gsub(' / ', '/')
+               .gsub(/(\.[0-9]{1})0 /, '\1 ')
+               .gsub(/([0-9]{1})\.0 /, '\1 ')
 
     CURRENCY_REGEX.match(rate) do |m|
       rate = rate.gsub(m[0], "#{convert_currency(m[1])} #{currency_symbol} ")
