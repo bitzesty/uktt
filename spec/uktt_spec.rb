@@ -6,12 +6,14 @@ RSpec.describe 'UK Trade Tariff gem' do
   test_opts = {return_json: false, 
                host: api_host, 
                version: spec_version,
-               debug: false}
+               debug: false,
+               currency: Uktt::PARENT_CURRENCY}
 
   new_opts = {host: host,
               version: 'v2',
               return_json: true,
-              debug: true}
+              debug: true,
+              currency: Uktt::PARENT_CURRENCY}
 
   section_id = '1'
   section_test = Uktt::Section.new(test_opts.merge(section_id: section_id))
