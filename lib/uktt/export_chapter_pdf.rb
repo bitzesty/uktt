@@ -326,7 +326,7 @@ class ExportChapterPdf
         text("<b><font size='#{@base_table_font_size * 1.5}'>Chapter #{chapter.data.attributes.goods_nomenclature_item_id[0..1].gsub(/^0/, '')}\n#{@chapter.data.attributes.formatted_description}</font></b>", opts)
         move_down(@base_table_font_size * 1.5)
 
-        text('<b>Note</b>', opts.merge(size: 9))
+        text('<b>Chapter notes</b>', opts.merge(size: 9))
         notes.split(/\* /).each do |note|
           text_indent(note, opts.merge(size: 9))
         end
@@ -334,7 +334,7 @@ class ExportChapterPdf
         move_down(@base_table_font_size)
 
         if additional_notes
-          text('<b>Additional Notes</b>', opts)
+          text('<b>Subheading notes</b>', opts)
           move_down(@base_table_font_size / 2)
           additional_notes && additional_notes.split(/\* /).each do |note|
             text_indent(note, opts)
@@ -343,7 +343,7 @@ class ExportChapterPdf
         end
 
         everything_else.each do |nn|
-          text('<b>Notes</b>', opts)
+          text('<b>Additional notes</b>', opts)
           move_down(@base_table_font_size / 2)
           nn.to_s.split(/\* /).each do |note|
             text_indent(note, opts)
@@ -880,10 +880,10 @@ class ExportChapterPdf
 
       footnotes_string = footnotes.map(&:id).map{|fid| "<sup><font size='9'>[#{@references_lookup.dig(footnote_reference_key(fid), :index)}]</font></sup>"}.join(' ')
       excluded_string = excluded.map(&:id).map{|xid| " (Excluding #{xid})"}.join(' ')
-      duty_string = clean_rates(duty.join)
+      duty_string = clean_rates(duty.join, column: 6)
       s << "#{geo}#{excluded_string}-#{duty_string}#{footnotes_string}"
     end
-    {content: s.sort.join('; '), inline_format: true}
+    { content: s.sort.join(', '), inline_format: true }
   end
 
   def formatted_vat_rate_cell
@@ -1169,12 +1169,13 @@ class ExportChapterPdf
     column_ratios.map { |n| n * multiplier }
   end
 
-  def clean_rates(raw)
-    rate = raw.gsub(/^0.00 %/, 'Free')
-       .gsub(' EUR ', ' € ')
-       .gsub(' / ', '/')
-       .gsub(/(\.[0-9]{1})0 /, '\1 ')
-       .gsub(/([0-9]{1})\.0 /, '\1 ')
+  def clean_rates(raw, column: nil)
+    rate = raw.gsub(/^0.00 %/, 'Free') if column != 6
+
+    rate = rate.gsub(' EUR ', ' € ')
+               .gsub(' / ', '/')
+               .gsub(/(\.[0-9]{1})0 /, '\1 ')
+               .gsub(/([0-9]{1})\.0 /, '\1 ')
 
     CURRENCY_REGEX.match(rate) do |m|
       rate = rate.gsub(m[0], "#{convert_currency(m[1])} #{currency_symbol} ")

@@ -26,7 +26,7 @@ RSpec.describe 'UK Trade Tariff API client' do
     year: '2018',
     geographical_area_id: 'EG',
     order_number: '091784',
-    status: 'not blocked'
+    status: 'not_blocked'
   }
 
   it 'retrieves one section as OpenStruct' do
@@ -431,7 +431,7 @@ RSpec.describe 'UK Trade Tariff API client' do
     when 'v2'
       response = quota.search(quota_search_params)
 
-      expect(response.data.first.attributes.goods_nomenclature_item_id).to eq(quota_search_params[:goods_nomenclature_item_id])
+      expect(response.data.first.attributes.quota_order_number_id).to eq(quota_search_params[:order_number])
     end
   end
 
@@ -441,7 +441,7 @@ RSpec.describe 'UK Trade Tariff API client' do
     when 'v2'
       response = JSON.parse(quota.search(quota_search_params), symbolize_names: true)
 
-      expect(response[:data].first[:attributes][:goods_nomenclature_item_id]).to eq(quota_search_params[:goods_nomenclature_item_id])
+      expect(response[:data].first[:attributes][:quota_order_number_id]).to eq(quota_search_params[:order_number])
     end
   end
 end
