@@ -1170,7 +1170,11 @@ class ExportChapterPdf
   end
 
   def clean_rates(raw, column: nil)
-    rate = raw.gsub(/^0.00 %/, 'Free') if column != 6
+    rate = raw
+
+    if column != 6
+      rate = rate.gsub(/^0.00 %/, 'Free')
+    end
 
     rate = rate.gsub(' EUR ', ' € ')
                .gsub(' / ', '/')
