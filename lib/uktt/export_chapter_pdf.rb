@@ -154,6 +154,9 @@ class ExportChapterPdf
     commodities_table
 
     pad_top(24) do
+      font_size(13) do
+        pad_bottom(4) { text('<b>Footnotes</b>', inline_format: true) }
+      end
       pad_bottom(4) { stroke_horizontal_rule }
       footnotes
     end
