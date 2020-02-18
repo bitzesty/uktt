@@ -33,11 +33,18 @@ module Uktt
     private
 
     def fetch(resource)
-      @response = Uktt::Http.new(@config[:host], 
-                     @config[:version], 
-                     @config[:debug])
-      .retrieve(resource, 
-                     @config[:return_json])
+      @response = Uktt::Http.new(
+        @config[:host],
+        @config[:version],
+        @config[:debug]
+      ).retrieve(
+        resource,
+        @config[:return_json]
+      )
+
+      @response = @response.data if @config[:version] == 'v2'
+
+      @response
     end
   end
 end
