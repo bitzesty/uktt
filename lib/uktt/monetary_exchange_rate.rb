@@ -16,11 +16,18 @@ module Uktt
     def latest(currency)
       retrieve_all unless @response
 
-      @response.select{ |obj| obj.child_monetary_unit_code == currency.upcase }
-               .sort_by(&:validity_start_date)
-               .last
-               .exchange_rate
-               .to_f
+      case @config[:version]
+      when 'v1'
+        @response.select{ |obj| obj.child_monetary_unit_code == currency.upcase }
+                 .sort_by(&:validity_start_date)
+                 .last.exchange_rate.to_f
+      when 'v2'
+        @response.select{ |obj| obj.attributes.child_monetary_unit_code == currency.upcase }
+                 .sort_by{ |obj| obj.attributes.validity_start_date }
+                 .last.attributes.exchange_rate.to_f
+      else
+        raise StandardError.new "`#{@opts[:version]}` is not a supported API version. Supported API versions are: v1 and v2"
+      end
     end
 
     def config=(new_opts = {})
@@ -41,10 +48,6 @@ module Uktt
         resource,
         @config[:return_json]
       )
-
-      @response = @response.data if @config[:version] == 'v2'
-
-      @response
     end
   end
 end
