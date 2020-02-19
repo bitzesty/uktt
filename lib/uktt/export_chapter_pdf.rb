@@ -125,7 +125,7 @@ class ExportChapterPdf
 
     response = ENV.fetch("MX_RATE_EUR_#{currency}") do |_missing_name|
       if currency === 'GBP'
-        Uktt::MonetaryExchangeRate.new.latest(currency)
+        Uktt::MonetaryExchangeRate.new(version: 'v2').latest(currency)
       else
         raise StandardError.new "Non-GBP currency exchange rates are not available via API and must be manually set with an environment variable, e.g., 'MX_RATE_EUR_#{currency}'"
       end

@@ -22,7 +22,7 @@ module Uktt
                  .sort_by(&:validity_start_date)
                  .last.exchange_rate.to_f
       when 'v2'
-        @response.select{ |obj| obj.attributes.child_monetary_unit_code == currency.upcase }
+        @response.data.select{ |obj| obj.attributes.child_monetary_unit_code == currency.upcase }
                  .sort_by{ |obj| obj.attributes.validity_start_date }
                  .last.attributes.exchange_rate.to_f
       else
