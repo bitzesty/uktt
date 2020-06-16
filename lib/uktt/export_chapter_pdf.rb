@@ -560,7 +560,7 @@ class ExportChapterPdf
   end
 
   def commodities_table
-    table commodity_table_data, column_widths: @cw do |t|
+    table commodity_table_data, header: true, column_widths: @cw do |t|
       t.cells.border_width = 0.25
       t.cells.borders = %i[left right]
       t.cells.padding_top = 2
