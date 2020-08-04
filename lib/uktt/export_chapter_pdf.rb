@@ -1076,7 +1076,6 @@ class ExportChapterPdf
     column_1 = []
     column_2 = []
     column_3 = []
-    notes = []
 
     notes_str = content.delete('\\')
     notes = notes_str_to_note_array(notes_str)
@@ -1124,7 +1123,7 @@ class ExportChapterPdf
   end
 
   def split_note(str)
-    arr = str.split(/\* |^([0-9]\.{0,}\s|\([a-z]{1,}\))/)
+    arr = str.split(/\* |^([0-9]\.{0,}\s|\([a-z]{1,}\))|(?=##\ )/)
              .map { |n| n.split(/^([0-9]\.{0,}\s{0,}|\([a-z]{1,}\))/) }
              .each { |n| n.unshift(Prawn::Text::NBSP) if n.length == 1 }
              .flatten
