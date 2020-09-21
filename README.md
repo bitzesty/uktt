@@ -16,7 +16,7 @@ The repository is here: __https://gitlab.bitzesty.com/open-source/uktt__
 Add to your Gemfile:
 
 ```ruby
-gem 'uktt', git: 'https://gitlab.bitzesty.com/open-source/uktt.git'
+gem 'uktt'
 ```
 
 ## Usage
@@ -292,9 +292,7 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 ## Contributing
 
-Pull requests: https://gitlab.bitzesty.com/open-source/uktt/merge_requests.
-
-Issues list: https://gitlab.bitzesty.com/open-source/uktt/issues.
+Code: https://github.com/bitzesty/uktt.
 
 This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
@@ -304,4 +302,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the `uktt` project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://gitlab.bitzesty.com/open-source/uktt/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the `uktt` project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/bitzesty/uktt/blob/master/CODE_OF_CONDUCT.md).
