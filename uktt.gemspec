@@ -5,8 +5,8 @@ require 'uktt/version'
 Gem::Specification.new do |spec|
   spec.name          = 'uktt'
   spec.version       = Uktt::VERSION
-  spec.authors       = ['Christopher Unger']
-  spec.email         = ['christopher.unger@bitzesty.com']
+  spec.authors       = ['Bit Zesty']
+  spec.email         = ['info@bitzesty.com']
 
   spec.summary       = 'A gem to work with the UK Trade Tariff API.'
   # spec.description   = %q{A gem to work with the UK Trade Tariff API.}
