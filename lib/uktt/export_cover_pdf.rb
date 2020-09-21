@@ -215,7 +215,7 @@ class ExportCoverPdf
 
       <b>2.8 - Footnotes and end of chapter information</b>
 
-      Where it is not practicable to include information and requirements against the line of the Tariff these are shown as footnotes on the same page or are set out at the end of the Chapter in which they apply under the Commodity Code reference. This additional material has the same legal force as all other information in the Schedule.
+      Footnotes are set out at the end of the Chapter in which they apply under the Commodity Code reference. This additional material has the same legal force as all other information in the Schedule.
 
       <b>2.9 - Validity of Tariff information</b>
 
