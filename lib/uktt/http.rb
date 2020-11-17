@@ -14,12 +14,14 @@ module Uktt
     end
 
     def retrieve(resource, return_json = false)
-      json = @conn.get do |request|
+      response = @conn.get do |request|
+        request.headers['Content-Type'] = 'application/json'
         request.url([@version, resource].join('/'))
-      end.body
-      return json if return_json
+      end
 
-      JSON.parse(json, object_class: OpenStruct)
+      return response.body if return_json
+
+      JSON.parse(response.body, object_class: OpenStruct)
     end
 
     class << self
