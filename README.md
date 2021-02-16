@@ -11,7 +11,7 @@ Uktt provides a way to work with the UK Trade Tariff API, https://api.trade-tari
 
 ## Installation
 
-The repository is here: __https://gitlab.bitzesty.com/open-source/uktt__
+The repository is here: __https://github.com/TransformCore/uktt/__
 
 Add to your Gemfile:
 
@@ -27,7 +27,7 @@ Set library-wide options using a hash. Here are the current defaults:
 ```ruby
 opts = {
   host: 'http://localhost:3002',  #  use a local frontend server
-  version: 'v1',                  #  `v1` and `v2` are supported
+  version: 'v2',                  #  `v1` and `v2` are supported
   debug: false,                   #  dislays request and response info
   return_json: false              #  returns OpenStruct by default
 }
@@ -292,7 +292,7 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 ## Contributing
 
-Code: https://github.com/bitzesty/uktt.
+Code: https://github.com/TransformCore/uktt.
 
 This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
