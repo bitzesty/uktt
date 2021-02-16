@@ -1,4 +1,5 @@
 require 'faraday'
+require 'faraday_middleware'
 require 'json'
 
 module Uktt
@@ -8,6 +9,7 @@ module Uktt
       @host = host || API_HOST_LOCAL
       @version = version || API_VERSION
       @conn = Faraday.new(url: @host) do |faraday|
+        faraday.use FaradayMiddleware::FollowRedirects
         faraday.response(:logger) if debug
         faraday.adapter Faraday.default_adapter
       end

@@ -5,8 +5,8 @@ require 'uktt/version'
 Gem::Specification.new do |spec|
   spec.name          = 'uktt'
   spec.version       = Uktt::VERSION
-  spec.authors       = ['Bit Zesty']
-  spec.email         = ['info@bitzesty.com']
+  spec.authors       = ['William Fish', 'Octavian Neguletu']
+  spec.email         = ['trade-tariff-support@enginegroup.com']
 
   spec.summary       = 'A gem to work with the UK Trade Tariff API.'
   # spec.description   = %q{A gem to work with the UK Trade Tariff API.}
@@ -34,10 +34,10 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'faraday'
+  spec.add_dependency 'nokogiri'
   spec.add_dependency 'prawn'
   spec.add_dependency 'prawn-table'
   spec.add_dependency 'thor', '~> 0.20'
-  spec.add_dependency 'nokogiri'
 
   spec.add_development_dependency 'bundler', '~> 2.0'
   spec.add_development_dependency 'rake', '~> 13.0'
