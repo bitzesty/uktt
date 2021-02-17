@@ -37,6 +37,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'faraday_middleware'
   spec.add_dependency 'nokogiri'
   spec.add_dependency 'prawn'
+  spec.add_dependency 'pry-byebug'
   spec.add_dependency 'prawn-table'
   spec.add_dependency 'thor'
 

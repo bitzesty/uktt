@@ -17,10 +17,9 @@ module Uktt
     end
 
     def retrieve(resource, return_json = false)
-      response = @conn.get do |request|
-        request.headers['Content-Type'] = 'application/json'
-        request.url([@version, resource].join('/'))
-      end
+      full_url = File.join(@host, 'api', @version, resource)
+      headers  = { 'Content-Type' => 'application/json' }
+      response = @conn.get(full_url, {}, headers)
 
       return response.body if return_json
 
