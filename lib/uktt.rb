@@ -14,15 +14,16 @@ require 'psych'
 module Uktt
   API_HOST_PROD =       'https://www.trade-tariff.service.gov.uk/api'.freeze
   API_HOST_LOCAL =      'http://localhost:3002/api'.freeze
-  API_VERSION =         'v1'.freeze
-  SECTION =             'sections'.freeze
-  CHAPTER =             'chapters'.freeze
-  HEADING =             'headings'.freeze
-  COMMODITY =           'commodities'.freeze
-  M_X_RATE =            'monetary_exchange_rates'.freeze
-  GOODS_NOMENCLATURE =  'goods_nomenclatures'.freeze
-  QUOTA =               'quotas'.freeze
-  PARENT_CURRENCY =     'EUR'.freeze
+  API_VERSION        = 'v1'.freeze
+  CHAPTER            = 'chapters'.freeze
+  COMMODITY          = 'commodities'.freeze
+  GEOGRAPHICAL_AREAS = 'geographical_areas'.freeze
+  GOODS_NOMENCLATURE = 'goods_nomenclatures'.freeze
+  HEADING            = 'headings'.freeze
+  M_X_RATE           = 'monetary_exchange_rates'.freeze
+  PARENT_CURRENCY    = 'EUR'.freeze
+  QUOTA              = 'quotas'.freeze
+  SECTION            = 'sections'.freeze
 
   class Error < StandardError; end
 
