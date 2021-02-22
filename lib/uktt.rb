@@ -1,20 +1,21 @@
 require 'uktt/version'
-require 'uktt/http'
-require 'uktt/section'
 require 'uktt/chapter'
-require 'uktt/heading'
-require 'uktt/country'
 require 'uktt/commodity'
+require 'uktt/country'
+require 'uktt/heading'
+require 'uktt/http'
 require 'uktt/monetary_exchange_rate'
-require 'uktt/quota'
+require 'uktt/parser'
 require 'uktt/pdf'
+require 'uktt/quota'
+require 'uktt/section'
 
 require 'yaml'
 require 'psych'
 
 module Uktt
-  API_HOST_PROD =       'https://www.trade-tariff.service.gov.uk/api'.freeze
-  API_HOST_LOCAL =      'http://localhost:3002/api'.freeze
+  API_HOST_PROD      = 'https://www.trade-tariff.service.gov.uk'.freeze
+  API_HOST_LOCAL     = 'https://dev.trade-tariff.service.gov.uk'.freeze
   API_VERSION        = 'v1'.freeze
   CHAPTER            = 'chapters'.freeze
   COMMODITY          = 'commodities'.freeze
@@ -32,8 +33,8 @@ module Uktt
   @config = {
               host: Uktt::Http.api_host, 
               version: Uktt::Http.spec_version, 
-              debug: false,
-              return_json: false,
+              debug: true,
+              format: 'ostruct',
               currency: PARENT_CURRENCY
             }
 

@@ -1,6 +1,5 @@
 require 'faraday'
 require 'faraday_middleware'
-require 'json'
 
 module Uktt
   # An object for handling network requests
@@ -16,14 +15,12 @@ module Uktt
       end
     end
 
-    def retrieve(resource, return_json = false)
+    def retrieve(resource, format = 'ostruct')
       full_url = File.join(@host, 'api', @version, resource)
       headers  = { 'Content-Type' => 'application/json' }
       response = @conn.get(full_url, {}, headers)
 
-      return response.body if return_json
-
-      JSON.parse(response.body, object_class: OpenStruct)
+      Parser.new(response.body, format).parse
     end
 
     class << self

@@ -1,5 +1,6 @@
 require 'bundler/setup'
 require 'uktt'
+require 'json-schema'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -23,4 +24,18 @@ end
 
 def api_host
   Uktt::Http.api_host
+end
+
+
+def read_file(fixture)
+  fixture_path = "spec/fixtures"
+  path = File.join(fixture_path, fixture)
+
+  File.read(path)
+end
+
+def parse_file(fixture)
+  file = read_file(fixture)
+
+  JSON.parse(file)
 end

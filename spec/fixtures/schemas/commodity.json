@@ -1,0 +1,656 @@
+{
+  "$schema": "http://json-schema.org/draft-03/schema#",
+  "description": "Generated from parsed.json with shasum c51c8a402e3576d712c045730c0fcf5561858350",
+  "type": "object",
+  "required": true,
+  "properties": {
+    "producline_suffix": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "string",
+      "required": true
+    },
+    "number_indents": {
+      "type": "integer",
+      "required": true
+    },
+    "goods_nomenclature_item_id": {
+      "type": "string",
+      "required": true
+    },
+    "bti_url": {
+      "type": "string",
+      "required": true
+    },
+    "formatted_description": {
+      "type": "string",
+      "required": true
+    },
+    "description_plain": {
+      "type": "string",
+      "required": true
+    },
+    "consigned": {
+      "type": "boolean",
+      "required": true
+    },
+    "consigned_from": {
+    },
+    "basic_duty_rate": {
+      "type": "string",
+      "required": true
+    },
+    "meursing_code": {
+      "type": "boolean",
+      "required": true
+    },
+    "declarable": {
+      "type": "boolean",
+      "required": true
+    },
+    "footnotes": {
+      "type": "array",
+      "required": true,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": true,
+        "properties": {
+          "code": {
+            "type": "string",
+            "required": true
+          },
+          "description": {
+            "type": "string",
+            "required": true
+          },
+          "formatted_description": {
+            "type": "string",
+            "required": true
+          }
+        }
+      }
+    },
+    "section": {
+      "type": "object",
+      "required": true,
+      "properties": {
+        "numeral": {
+          "type": "string",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "required": true
+        },
+        "position": {
+          "type": "integer",
+          "required": true
+        },
+        "section_note": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    "chapter": {
+      "type": "object",
+      "required": true,
+      "properties": {
+        "goods_nomenclature_item_id": {
+          "type": "string",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "required": true
+        },
+        "formatted_description": {
+          "type": "string",
+          "required": true
+        },
+        "chapter_note": {
+          "type": "string",
+          "required": true
+        },
+        "guides": {
+          "type": "array",
+          "required": true,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": true,
+            "properties": {
+              "title": {
+                "type": "string",
+                "required": true
+              },
+              "url": {
+                "type": "string",
+                "required": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "heading": {
+      "type": "object",
+      "required": true,
+      "properties": {
+        "goods_nomenclature_item_id": {
+          "type": "string",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "required": true
+        },
+        "formatted_description": {
+          "type": "string",
+          "required": true
+        },
+        "description_plain": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    "ancestors": {
+      "type": "array",
+      "required": true,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": true,
+        "properties": {
+          "producline_suffix": {
+            "type": "string",
+            "required": true
+          },
+          "description": {
+            "type": "string",
+            "required": true
+          },
+          "number_indents": {
+            "type": "integer",
+            "required": true
+          },
+          "goods_nomenclature_item_id": {
+            "type": "string",
+            "required": true
+          },
+          "formatted_description": {
+            "type": "string",
+            "required": true
+          },
+          "description_plain": {
+            "type": "string",
+            "required": true
+          }
+        }
+      }
+    },
+    "import_measures": {
+      "type": "array",
+      "required": true,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": true,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "required": true
+          },
+          "origin": {
+            "type": "string",
+            "required": true
+          },
+          "effective_start_date": {
+            "type": "string",
+            "required": true
+          },
+          "effective_end_date": {
+          },
+          "import": {
+            "type": "boolean",
+            "required": true
+          },
+          "excise": {
+            "type": "boolean",
+            "required": false
+          },
+          "vat": {
+            "type": "boolean",
+            "required": false
+          },
+          "duty_expression": {
+            "type": "object",
+            "required": true,
+            "properties": {
+              "base": {
+                "type": "string",
+                "required": true
+              },
+              "formatted_base": {
+                "type": "string",
+                "required": true
+              }
+            }
+          },
+          "measure_type": {
+            "type": "object",
+            "required": true,
+            "properties": {
+              "description": {
+                "type": "string",
+                "required": true
+              },
+              "national": {
+              },
+              "measure_type_series_id": {
+                "type": "string",
+                "required": true
+              },
+              "id": {
+                "type": "string",
+                "required": true
+              }
+            }
+          },
+          "legal_acts": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "required": true,
+              "properties": {
+                "validity_start_date": {
+                  "type": "string",
+                  "required": true
+                },
+                "validity_end_date": {
+                },
+                "officialjournal_number": {
+                  "type": ["string", "null"],
+                  "required": false
+                },
+                "officialjournal_page": {
+                  "type": ["integer", "null"],
+                  "required": false
+                },
+                "published_date": {
+                  "type": "string",
+                  "required": true
+                },
+                "regulation_code": {
+                  "type": "string",
+                  "required": true
+                },
+                "regulation_url": {
+                  "type": "string",
+                  "required": true
+                }
+              }
+            }
+          },
+          "measure_conditions": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "required": false,
+              "properties": {
+                "condition_code": {
+                  "type": ["string", "null"],
+                  "required": false
+                },
+                "condition": {
+                  "type": ["string", "null"],
+                  "required": false
+                },
+                "document_code": {
+                  "type": ["string", "null"],
+                  "required": false
+                },
+                "requirement": {
+                  "type": ["string", "null"],
+                  "required": false
+                },
+                "action": {
+                  "type": ["string", "null"],
+                  "required": false
+                },
+                "duty_expression": {
+                  "type": ["string", "null"],
+                  "required": false
+                },
+                "condition_duty_amount": {
+                },
+                "condition_monetary_unit_code": {
+                },
+                "monetary_unit_abbreviation": {
+                },
+                "condition_measurement_unit_code": {
+                },
+                "condition_measurement_unit_qualifier_code": {
+                },
+                "measure_condition_components": {
+                  "type": "array",
+                  "required": false,
+                  "uniqueItems": true,
+                  "items": {
+                  }
+                }
+              }
+            }
+          },
+          "measure_components": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+            }
+          },
+          "national_measurement_units": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+            }
+          },
+          "geographical_area": {
+            "type": "object",
+            "required": true,
+            "properties": {
+              "id": {
+                "type": "string",
+                "required": true
+              },
+              "description": {
+                "type": "string",
+                "required": true
+              },
+              "geographical_area_id": {
+                "type": "string",
+                "required": true
+              },
+              "children_geographical_areas": {
+                "type": "array",
+                "required": false,
+                "uniqueItems": true,
+                "items": {
+                  "type": "object",
+                  "required": true,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "required": true
+                    },
+                    "description": {
+                      "type": "string",
+                      "required": true
+                    },
+                    "geographical_area_id": {
+                      "type": "string",
+                      "required": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "excluded_countries": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+            }
+          },
+          "footnotes": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "required": true,
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "required": true
+                },
+                "description": {
+                  "type": "string",
+                  "required": true
+                },
+                "formatted_description": {
+                  "type": "string",
+                  "required": true
+                }
+              }
+            }
+          },
+          "order_number": {
+          }
+        }
+      }
+    },
+    "export_measures": {
+      "type": "array",
+      "required": true,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": true,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "required": true
+          },
+          "origin": {
+            "type": "string",
+            "required": true
+          },
+          "effective_start_date": {
+            "type": "string",
+            "required": true
+          },
+          "effective_end_date": {
+          },
+          "import": {
+            "type": "boolean",
+            "required": true
+          },
+          "excise": {
+            "type": "boolean",
+            "required": false
+          },
+          "vat": {
+            "type": "boolean",
+            "required": false
+          },
+          "duty_expression": {
+            "type": "object",
+            "required": true,
+            "properties": {
+              "base": {
+                "type": "string",
+                "required": true
+              },
+              "formatted_base": {
+                "type": "string",
+                "required": true
+              }
+            }
+          },
+          "measure_type": {
+            "type": "object",
+            "required": true,
+            "properties": {
+              "description": {
+                "type": "string",
+                "required": true
+              },
+              "national": {
+              },
+              "measure_type_series_id": {
+                "type": "string",
+                "required": true
+              },
+              "id": {
+                "type": "string",
+                "required": true
+              }
+            }
+          },
+          "legal_acts": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "required": true,
+              "properties": {
+                "validity_start_date": {
+                  "type": "string",
+                  "required": true
+                },
+                "validity_end_date": {
+                },
+                "officialjournal_number": {
+                  "type": "string",
+                  "required": true
+                },
+                "officialjournal_page": {
+                },
+                "published_date": {
+                  "type": "string",
+                  "required": true
+                },
+                "regulation_code": {
+                  "type": "string",
+                  "required": true
+                },
+                "regulation_url": {
+                  "type": "string",
+                  "required": true
+                }
+              }
+            }
+          },
+          "measure_conditions": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+            }
+          },
+          "measure_components": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "required": true,
+              "properties": {
+                "duty_expression_id": {
+                  "type": "string",
+                  "required": true
+                },
+                "duty_amount": {
+                },
+                "monetary_unit_code": {
+                },
+                "monetary_unit_abbreviation": {
+                },
+                "measurement_unit_code": {
+                  "type": "string",
+                  "required": true
+                },
+                "duty_expression_description": {
+                  "type": "string",
+                  "required": true
+                },
+                "duty_expression_abbreviation": {
+                  "type": "string",
+                  "required": true
+                },
+                "measurement_unit_qualifier_code": {
+                }
+              }
+            }
+          },
+          "national_measurement_units": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+            }
+          },
+          "geographical_area": {
+            "type": "object",
+            "required": true,
+            "properties": {
+              "id": {
+                "type": "string",
+                "required": true
+              },
+              "description": {
+                "type": "string",
+                "required": true
+              },
+              "geographical_area_id": {
+                "type": "string",
+                "required": true
+              },
+              "children_geographical_areas": {
+                "type": "array",
+                "required": true,
+                "uniqueItems": true,
+                "items": {
+                  "type": "object",
+                  "required": true,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "required": true
+                    },
+                    "description": {
+                      "type": "string",
+                      "required": true
+                    },
+                    "geographical_area_id": {
+                      "type": "string",
+                      "required": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "excluded_countries": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+            }
+          },
+          "footnotes": {
+            "type": "array",
+            "required": true,
+            "uniqueItems": true,
+            "items": {
+            }
+          },
+          "order_number": {
+          }
+        }
+      }
+    }
+  }
+}

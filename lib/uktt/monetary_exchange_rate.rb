@@ -46,7 +46,7 @@ module Uktt
         @config[:debug]
       ).retrieve(
         resource,
-        @config[:return_json]
+        @config[:format]
       )
     end
   end

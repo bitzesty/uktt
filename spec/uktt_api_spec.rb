@@ -4,7 +4,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   opts = {host: api_host, 
           version: spec_version, 
           debug: false,
-          return_json: false}
+          format: 'ostruct'}
 
   section_id = '1'
   section = Uktt::Section.new(opts.merge(section_id: section_id))
@@ -30,7 +30,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   }
 
   it 'retrieves one section as OpenStruct' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = section.retrieve
 
     expect(response).to be_an_instance_of(OpenStruct)
@@ -43,7 +43,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one section as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(section.retrieve, symbolize_names: true)
 
     expect(response).to be_an_instance_of(Hash)
@@ -56,7 +56,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one section\'s note as OpenStruct' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = section.note
 
     expect(response).to be_an_instance_of(OpenStruct)
@@ -69,7 +69,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one section\'s note as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(section.note, symbolize_names: true)
 
     expect(response).to be_an_instance_of(Hash)
@@ -82,7 +82,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves all sections as [OpenStructs]' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = section.retrieve_all
 
     case spec_version
@@ -98,7 +98,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves all sections as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(section.retrieve_all, symbolize_names: true)
 
     case spec_version
@@ -112,7 +112,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one chapter as OpenStruct' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = chapter.retrieve
 
     case spec_version
@@ -126,7 +126,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one chapter as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(chapter.retrieve, symbolize_names: true)
 
     case spec_version
@@ -140,7 +140,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
   
   it 'retrieves one chapter\'s note as OpenStruct' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = chapter.note
 
     expect(response).to be_an_instance_of(OpenStruct)
@@ -155,7 +155,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one chapter\'s note as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(chapter.note, symbolize_names: true)
 
     case spec_version
@@ -169,7 +169,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one chapter\'s changes as OpenStruct' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = chapter.changes
     case spec_version
     when 'v1'
@@ -182,7 +182,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one chapter\'s changes as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(chapter.changes, symbolize_names: true)
     case spec_version
     when 'v1'
@@ -195,7 +195,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves all chapters as [OpenStructs]' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = chapter.retrieve_all
     case spec_version
     when 'v1'
@@ -210,7 +210,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves all chapters as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(chapter.retrieve_all, symbolize_names: true)
     case spec_version
     when 'v1'
@@ -223,7 +223,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one heading as OpenStruct' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = heading.retrieve
     case spec_version
     when 'v1'
@@ -236,7 +236,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one heading as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(heading.retrieve, symbolize_names: true)
     case spec_version
     when 'v1'
@@ -249,7 +249,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one heading\'s changes as OpenStruct' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = heading.changes
     case spec_version
     when 'v1'
@@ -262,7 +262,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one heading\'s changes as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(heading.changes, symbolize_names: true)
     case spec_version
     when 'v1'
@@ -275,7 +275,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one commodity as OpenStruct' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = commodity.retrieve
     case spec_version
     when 'v1'
@@ -288,7 +288,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one commodity as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(commodity.retrieve, symbolize_names: true)
     case spec_version
     when 'v1'
@@ -301,7 +301,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one commodity\'s changes as OpenStruct' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = commodity.changes
     case spec_version
     when 'v1'
@@ -314,7 +314,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves one commodity\'s changes as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(chapter.changes, symbolize_names: true)
     case spec_version
     when 'v1'
@@ -327,7 +327,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves monetary exchange rates as [OpenStructs]' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     response = monetary_exchange_rate.retrieve_all
     case spec_version
     when 'v1'
@@ -342,7 +342,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves monetary exchange rates as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     response = JSON.parse(monetary_exchange_rate.retrieve_all, symbolize_names: true)
     case spec_version
     when 'v1'
@@ -357,7 +357,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves goods nomenclatures for a heading as [OpenStructs]' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     case spec_version
     when 'v2'
       response = heading.goods_nomenclatures
@@ -369,7 +369,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves goods nomenclatures for a heading as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     case spec_version
     when 'v2'
       response = JSON.parse(heading.goods_nomenclatures, symbolize_names: true)
@@ -380,7 +380,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves goods nomenclatures for a chapter as [OpenStructs]' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     case spec_version
     when 'v2'
       response = chapter.goods_nomenclatures
@@ -392,7 +392,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves goods nomenclatures for a chapter as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     case spec_version
     when 'v2'
       response = JSON.parse(chapter.goods_nomenclatures, symbolize_names: true)
@@ -403,7 +403,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves goods nomenclatures for a section as [OpenStructs]' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     case spec_version
     when 'v2'
       response = section.goods_nomenclatures
@@ -415,7 +415,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'retrieves goods nomenclatures for a section as JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     case spec_version
     when 'v2'
       response = JSON.parse(section.goods_nomenclatures, symbolize_names: true)
@@ -426,7 +426,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'performs a search and returns [OpenStructs]' do
-    Uktt.configure(return_json: false, version: spec_version)
+    Uktt.configure(format: 'ostruct', version: spec_version)
     case spec_version
     when 'v2'
       response = quota.search(quota_search_params)
@@ -436,7 +436,7 @@ RSpec.describe 'UK Trade Tariff API client' do
   end
 
   it 'performs a search and returns JSON' do
-    Uktt.configure(return_json: true, version: spec_version)
+    Uktt.configure(format: 'json', version: spec_version)
     case spec_version
     when 'v2'
       response = JSON.parse(quota.search(quota_search_params), symbolize_names: true)

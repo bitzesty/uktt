@@ -7,15 +7,26 @@ RSpec.describe Uktt::Http do
   let(:debug) { false }
   let(:conn) { double }
   let(:response) { double }
+  let(:parser) { double(parse: {}) }
+  let(:host) { 'http://localhost' }
 
   describe '#retrieve' do
     before do
       allow(conn).to receive(:get).and_return(response)
       allow(response).to receive(:body).and_return('{}')
+      allow(Uktt::Parser).to receive(:new).and_return(parser)
     end
 
     let(:expected_headers) { { 'Content-Type' => 'application/json' } }
     let(:expected_body) { {} } 
+
+
+    it 'passes the body and format to the Parser' do
+      client.retrieve('commodities/1234567890')
+
+      expect(Uktt::Parser).to have_received(:new).with('{}', 'ostruct')
+    end
+
 
     context 'when the host includes xi in the path' do
       let(:host) { 'http://localhost/xi' }

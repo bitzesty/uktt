@@ -26,10 +26,10 @@ gem 'uktt'
 Set library-wide options using a hash. Here are the current defaults:
 ```ruby
 opts = {
-  host: 'http://localhost:3002',  #  use a local frontend server
-  version: 'v2',                  #  `v1` and `v2` are supported
-  debug: false,                   #  dislays request and response info
-  return_json: false              #  returns OpenStruct by default
+  host: 'http://localhost:3002', # use a local frontend server
+  version: 'v2',                 # `v1` and `v2` are supported
+  debug: false,                  # dislays request and response info
+  format: 'ostruct'              # ostruct, json or json api formatted json
 }
 ```
 
@@ -44,12 +44,12 @@ Set options upon instantiation, and change them on the instance by passing-in a 
 > s = Uktt::Section.new
 > s.section_id = '1'
 
-# => #<Uktt::Section @section_id="1", @config={:host=>"http://localhost:3002", :version=>"v1", :debug=>false, :return_json=>false}>
+# => #<Uktt::Section @section_id="1", @config={:host=>"http://localhost:3002", :version=>"v1", :debug=>false, :format=>'ostruct'}>
 
-> s.config = {version: 'v2', return_json: true, section_id: '2'}
+> s.config = {version: 'v2', format: 'json', section_id: '2'}
 > s.inspect
 
-# => #<Uktt::Section @section_id="2", @config={:host=>"http://localhost:3002", :version=>"v2", :debug=>false, :return_json=>true}>
+# => #<Uktt::Section @section_id="2", @config={:host=>"http://localhost:3002", :version=>"v2", :debug=>false, :format=>'json'}>
 
 # NOTE: `Uktt::Section` has accessors. Other objects also have *_id accessors.
 
@@ -59,7 +59,7 @@ Set options upon instantiation, and change them on the instance by passing-in a 
 
 > s.section_id = '3'
 
-# => #<Uktt::Section @section_id="3", @config={:host=>"http://localhost:3002", :version=>"v2", :debug=>false, :return_json=>true}> 
+# => #<Uktt::Section @section_id="3", @config={:host=>"http://localhost:3002", :version=>"v2", :debug=>false, :format=>'json'}> 
 
 ```
 
@@ -71,7 +71,7 @@ Options may be loaded from a YAML configuration file:
   host: http://foo.bar:999
   version: v2
   debug: false
-  return_json: false
+  format: ostruct
 ```
 
 
@@ -80,7 +80,7 @@ Load options from file:
 ```ruby
 > Uktt.configure_with('./uktt.yaml')
 
-# => {"host"=>"http://foo.bar:999", "version"=>"v2", "debug"=>false, "return_json"=>false}
+# => {"host"=>"http://foo.bar:999", "version"=>"v2", "debug"=>false, "format"=>'ostruct'}
 ```
 
 ### Retrieve one object
@@ -92,7 +92,7 @@ Retrieve an object as an OpenStruct, then retrieve it as JSON
 
 # => #<OpenStruct data=#<OpenStruct id="3", type="section", attributes=#<OpenStruct ... >>>
 
-> s.config = {return_json: true}
+> s.config = {format: 'json'}
 > s.retrieve
 
 # => {"data":{"id":"3","type":"section","attributes":{"id": ... }}}

@@ -19,7 +19,7 @@ module Uktt
                  type: :boolean,
                  desc: 'Show request and response headers, otherwise not shown',
                  banner: true
-    class_option :return_json,
+    class_option :format,
                  aliases: ['-j', '--json'],
                  type: :boolean,
                  desc: 'Request JSON response, otherwise OpenStruct',

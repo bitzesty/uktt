@@ -3,7 +3,7 @@ require 'uktt'
 RSpec.describe 'UK Trade Tariff gem' do
   host = Uktt::API_HOST_PROD
 
-  test_opts = {return_json: false, 
+  test_opts = {format: false, 
                host: api_host, 
                version: spec_version,
                debug: false,
@@ -11,7 +11,7 @@ RSpec.describe 'UK Trade Tariff gem' do
 
   new_opts = {host: host,
               version: 'v2',
-              return_json: true,
+              format: true,
               debug: true,
               currency: Uktt::PARENT_CURRENCY}
 
